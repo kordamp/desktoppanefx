@@ -10,7 +10,7 @@ The [`javaFXMDI`](https://github.com/lincolnminto/javaFXMDI) repository is where
 
 * [Submit bugs and feature requests](https://github.com/lincolnminto/javaFXMDI/issues) and help us verify as they are checked in
 * Review [source code changes](https://github.com/lincolnminto/javaFXMDI/pulls)
-* Review the [documentation](https://github.com/lincolnminto/javaFXMDI-docs) and make pull requests for anything from typos to new content
+* Review the [documentation](https://github.com/lincolnminto/javaFXMDI/wiki) and make pull requests for anything from typos to new content
 
 ## Contributing
 If you are interested in fixing issues and contributing directly to the code base, please contact us!
