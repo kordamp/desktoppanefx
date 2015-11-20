@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="mainPane" minHeight="358.0" minWidth="530.0" prefHeight="372.0" prefWidth="549.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.supremeforever.MyContentController">
+   <children>
+      <VBox alignment="TOP_CENTER" layoutX="300.0" layoutY="84.0" prefHeight="200.0" prefWidth="100.0" spacing="15.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+         <children>
+            <Label text="JavaFX Rules!">
+               <font>
+                  <Font name="System Bold" size="32.0" />
+               </font>
+            </Label>
+            <Label text="MDI Window Button Controls:" />
+            <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0">
+               <children>
+                  <Button fx:id="btnDisableEnableClose" mnemonicParsing="false" text="Disable/Enable Close" />
+                  <Button fx:id="btnMinimize" mnemonicParsing="false" text="Minimize" />
+                  <Button fx:id="btnMaximizeRestore" mnemonicParsing="false" text="Maximize/Restore" />
+                  <Button fx:id="btnClose" mnemonicParsing="false" text="Close" />
+               </children>
+            </FlowPane>
+            <Label text="MDI Window Position:" />
+            <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0">
+               <children>
+                  <Button fx:id="btnAlignCENTER" mnemonicParsing="false" text="Align CENTER" />
+                  <Button fx:id="btnAlignRIGHT_TOP" mnemonicParsing="false" text="Align RIGHT_TOP" />
+                  <Button fx:id="btnAlignRIGHT_BOTTOM" mnemonicParsing="false" text="Align RIGHT_BOTTOM" />
+                  <Button fx:id="btnAlignRIGHT_CENTER" mnemonicParsing="false" text="Align RIGHT_CENTER" />
+                  <Button fx:id="btnAlignLEFT_TOP" mnemonicParsing="false" text="Align LEFT_TOP" />
+                  <Button fx:id="btnAlignLEFT_BOTTOM" mnemonicParsing="false" text="Align LEFT_BOTTOM" />
+                  <Button fx:id="btnAlignLEFT_CENTER" mnemonicParsing="false" text="Align LEFT_CENTER" />
+               </children>
+            </FlowPane>
+            <Label text="Effects:" />
+            <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0">
+               <children>
+                  <Button fx:id="btnRotate" mnemonicParsing="false" text="Rotate =)" />
+               </children>
+            </FlowPane>
+            <Hyperlink fx:id="link" text="www.supremeforever.com.br" />
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
