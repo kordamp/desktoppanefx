@@ -10,6 +10,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -45,6 +46,7 @@ public class MDIWindow extends BorderPane {
     private boolean isMaximized = false;
     private BooleanProperty isClosed = new SimpleBooleanProperty(false);
     private MDIWindow.ResizeMode resizeMode;
+    private MDIWindow.AlignPosition alignPosition;
     private boolean RESIZE_TOP;
     private boolean RESIZE_LEFT;
     private boolean RESIZE_BOTTOM;
@@ -370,6 +372,18 @@ public class MDIWindow extends BorderPane {
 
     }
 
+    public void placeMdiWindow(AlignPosition alignPosition) {
+        Platform.runLater(() -> {
+            ((MDICanvas) this.getParent().getParent()).placeMdiWindow(this, alignPosition);
+        });
+    }
+
+    public void placeMdiWindow(Point2D point) {
+        Platform.runLater(() -> {
+            ((MDICanvas) this.getParent().getParent()).placeMdiWindow(this, point);
+        });
+    }
+
     public void centerMdiWindow() {
         Platform.runLater(() -> {
             ((MDICanvas) this.getParent().getParent()).centerMdiWindow(this);
@@ -438,6 +452,19 @@ public class MDIWindow extends BorderPane {
         TOP_RIGHT,
         BOTTOM_LEFT,
         BOTTOM_RIGHT
+    }
+
+    public enum AlignPosition {
+
+        CENTER,
+        CENTER_LEFT,
+        CENTER_RIGHT,
+        TOP_CENTER,
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT,
+        BOTTOM_CENTER
     }
 
     public BooleanProperty getIsClosedProperty() {

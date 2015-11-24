@@ -14,6 +14,7 @@ import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Point2D;
 
@@ -21,17 +22,17 @@ import javafx.geometry.Point2D;
  * Created by brisatc171.minto on 12/11/2015.
  */
 public class MDICanvas extends VBox {
-    
+
     private class WidthChangeListener implements ChangeListener {
-        
+
         private MDICanvas mdi;
         private MDIWindow window;
-        
+
         public WidthChangeListener(MDICanvas mdi, MDIWindow window) {
             this.mdi = mdi;
             this.window = window;
         }
-        
+
         @Override
         public void changed(ObservableValue observable, Object oldValue, Object newValue) {
             this.mdi.centerMdiWindow(this.window);
@@ -45,7 +46,7 @@ public class MDICanvas extends VBox {
     private MDICanvas mdiCanvas = this;
     private final int taskbarHeightWithoutScrool = 44;
     private final int taskbarHeightWithScrool = 54;
-    
+
     /**
      * *********** CONSTRUICTOR *************
      */
@@ -127,7 +128,7 @@ public class MDICanvas extends VBox {
             restoreExisting(mdiWindow);
         }
     }
-    
+
     public void addMDIWindow(MDIWindow mdiWindow, Point2D position) {
         if (getItemFromMDIContainer(mdiWindow.getId()) == null) {
             addNew(mdiWindow, position);
@@ -139,7 +140,7 @@ public class MDICanvas extends VBox {
     private void addNew(MDIWindow mdiWindow, Point2D position) {
         mdiWindow.setVisible(false);
         paneMDIContainer.getChildren().add(mdiWindow);
-        if(position == null) {
+        if (position == null) {
             mdiWindow.layoutBoundsProperty().addListener(new WidthChangeListener(this, mdiWindow));
         } else {
             this.placeMdiWindow(mdiWindow, position);
@@ -159,7 +160,7 @@ public class MDICanvas extends VBox {
             }
         }
     }
-    
+
     /**
      * *****************************MDI_EVENT_HANDLERS**************************
      */
@@ -219,43 +220,80 @@ public class MDICanvas extends VBox {
         }
         return null;
     }
-    
+
+    public void placeMdiWindow(MDIWindow mdiWindow, MDIWindow.AlignPosition alignPosition) {
+        double canvasH = getPaneMDIContainer().getLayoutBounds().getHeight();
+        double canvasW = getPaneMDIContainer().getLayoutBounds().getWidth();
+        double mdiH = mdiWindow.getLayoutBounds().getHeight();
+        double mdiW = mdiWindow.getLayoutBounds().getWidth();
+
+        switch (alignPosition) {
+            case CENTER:
+                centerMdiWindow(mdiWindow);
+                break;
+            case CENTER_LEFT:
+                placeMdiWindow(mdiWindow, new Point2D(0, (int) (canvasH / 2) - (int) (mdiH / 2)));
+                break;
+            case CENTER_RIGHT:
+                placeMdiWindow(mdiWindow, new Point2D((int) canvasW - (int) mdiW, (int) (canvasH / 2) - (int) (mdiH / 2)));
+                break;
+            case TOP_CENTER:
+                placeMdiWindow(mdiWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2), 0));
+                break;
+            case TOP_LEFT:
+                placeMdiWindow(mdiWindow, Point2D.ZERO);
+                break;
+            case TOP_RIGHT:
+                placeMdiWindow(mdiWindow, new Point2D((int) canvasW - (int) mdiW, 0));
+                break;
+            case BOTTOM_LEFT:
+                placeMdiWindow(mdiWindow, new Point2D(0, (int) canvasH - (int) mdiH));
+                break;
+            case BOTTOM_RIGHT:
+                placeMdiWindow(mdiWindow, new Point2D((int) canvasW - (int) mdiW, (int) canvasH - (int) mdiH));
+                break;
+            case BOTTOM_CENTER:
+                placeMdiWindow(mdiWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2),(int) canvasH - (int) mdiH));
+                break;
+        }
+    }
+
     public void placeMdiWindow(MDIWindow mdiWindow, Point2D point) {
         double windowsWidth = mdiWindow.getLayoutBounds().getWidth();
         double windowsHeight = mdiWindow.getLayoutBounds().getHeight();
         mdiWindow.setPrefSize(windowsWidth, windowsHeight);
-        
+
         double containerWidth = this.paneMDIContainer.getLayoutBounds().getWidth();
         double containerHeight = this.paneMDIContainer.getLayoutBounds().getHeight();
-        if(containerWidth <= point.getX() || containerHeight <= point.getY()) {
+        if (containerWidth <= point.getX() || containerHeight <= point.getY()) {
             throw new PositionOutOfBoundsException(
-                "Tried to place MDI Window with ID " + mdiWindow.getId() +
-                " at a coordinate " + point.toString() + 
-                " that is beyond current size of the MDI container " + 
-                containerWidth + "px x " + containerHeight + "px."
+                    "Tried to place MDI Window with ID " + mdiWindow.getId() +
+                            " at a coordinate " + point.toString() +
+                            " that is beyond current size of the MDI container " +
+                            containerWidth + "px x " + containerHeight + "px."
             );
         }
-        
-        if((containerWidth - point.getX() < 40) || 
-            (containerHeight - point.getY() < 40)) {
+
+        if ((containerWidth - point.getX() < 40) ||
+                (containerHeight - point.getY() < 40)) {
             throw new PositionOutOfBoundsException(
-                "Tried to place MDI Window with ID " + mdiWindow.getId() +
-                " at a coordinate " + point.toString() + 
-                " that is too close to the edge of the parent of size " + 
-                containerWidth + "px x " + containerHeight + "px " +
-                " for user to comfortably grab the title bar with the mouse."
+                    "Tried to place MDI Window with ID " + mdiWindow.getId() +
+                            " at a coordinate " + point.toString() +
+                            " that is too close to the edge of the parent of size " +
+                            containerWidth + "px x " + containerHeight + "px " +
+                            " for user to comfortably grab the title bar with the mouse."
             );
         }
-        
-        mdiWindow.setLayoutX((int)point.getX());
-        mdiWindow.setLayoutY((int)point.getY());
+
+        mdiWindow.setLayoutX((int) point.getX());
+        mdiWindow.setLayoutY((int) point.getY());
         mdiWindow.setVisible(true);
     }
 
     public void centerMdiWindow(MDIWindow mdiWindow) {
         double w = getPaneMDIContainer().getLayoutBounds().getWidth();
         double h = getPaneMDIContainer().getLayoutBounds().getHeight();
-        
+
         Platform.runLater(() -> {
             double windowsWidth = mdiWindow.getLayoutBounds().getWidth();
             double windowsHeight = mdiWindow.getLayoutBounds().getHeight();

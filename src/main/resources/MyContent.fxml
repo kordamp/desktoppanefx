@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import java.util.*?>
@@ -7,7 +8,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="mainPane" minHeight="358.0" minWidth="530.0" prefHeight="372.0" prefWidth="549.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.supremeforever.MyContentController">
+<AnchorPane id="AnchorPane" fx:id="mainPane" minHeight="418.0" minWidth="647.0" prefHeight="418.0" prefWidth="647.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.supremeforever.MyContentController">
    <children>
       <VBox alignment="TOP_CENTER" layoutX="300.0" layoutY="84.0" prefHeight="200.0" prefWidth="100.0" spacing="15.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
@@ -26,17 +27,41 @@
                </children>
             </FlowPane>
             <Label text="MDI Window Position:" />
-            <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0">
+            <AnchorPane prefHeight="200.0" prefWidth="200.0">
                <children>
-                  <Button fx:id="btnAlignCENTER" mnemonicParsing="false" text="Align CENTER" />
-                  <Button fx:id="btnAlignRIGHT_TOP" mnemonicParsing="false" text="Align RIGHT_TOP" />
-                  <Button fx:id="btnAlignRIGHT_BOTTOM" mnemonicParsing="false" text="Align RIGHT_BOTTOM" />
-                  <Button fx:id="btnAlignRIGHT_CENTER" mnemonicParsing="false" text="Align RIGHT_CENTER" />
-                  <Button fx:id="btnAlignLEFT_TOP" mnemonicParsing="false" text="Align LEFT_TOP" />
-                  <Button fx:id="btnAlignLEFT_BOTTOM" mnemonicParsing="false" text="Align LEFT_BOTTOM" />
-                  <Button fx:id="btnAlignLEFT_CENTER" mnemonicParsing="false" text="Align LEFT_CENTER" />
+                  <GridPane style="-fx-border-color: black;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="0.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="80.0" minWidth="10.0" prefWidth="50.0" />
+                      <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" maxWidth="123.0" minWidth="10.0" prefWidth="50.0" />
+                        <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="50.0" />
+                      <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="10.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="10.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <Button fx:id="btnAlignCENTER" mnemonicParsing="false" text="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                        <Button fx:id="btnAlignRIGHT_TOP" mnemonicParsing="false" prefWidth="110.0" text="TOP_RIGHT" GridPane.columnIndex="4" />
+                        <Button fx:id="btnAlignLEFT_CENTER" mnemonicParsing="false" prefWidth="110.0" text="CENTER_LEFT" GridPane.rowIndex="2" />
+                        <Button fx:id="btnAlignRIGHT_BOTTOM" mnemonicParsing="false" prefWidth="110.0" text="BOTTOM_RIGHT" GridPane.columnIndex="4" GridPane.rowIndex="4" />
+                        <Button fx:id="btnAlignLEFT_TOP" mnemonicParsing="false" prefWidth="110.0" text="TOP_LEFT" />
+                        <Button fx:id="btnAlignRIGHT_CENTER" mnemonicParsing="false" prefWidth="110.0" text="CENTER_RIGHT" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+                        <Button fx:id="btnAlignLEFT_BOTTOM" mnemonicParsing="false" prefWidth="110.0" text="BOTTOM_LEFT" GridPane.rowIndex="4" />
+                        <Button fx:id="btnAlignTOP_CENTER" mnemonicParsing="false" prefWidth="110.0" text="TOP_CENTER" GridPane.columnIndex="1" GridPane.columnSpan="3" />
+                        <Button fx:id="btnAlignBOTTOM_CENTER" minWidth="-Infinity" mnemonicParsing="false" prefHeight="25.0" prefWidth="115.0" text="BOTTOM_CENTER" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4" />
+                     </children>
+                     <opaqueInsets>
+                        <Insets />
+                     </opaqueInsets>
+                  </GridPane>
                </children>
-            </FlowPane>
+            </AnchorPane>
+            <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0" />
             <Label text="Effects:" />
             <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0">
                <children>
