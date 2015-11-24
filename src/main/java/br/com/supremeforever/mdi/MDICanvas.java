@@ -1,5 +1,6 @@
 package br.com.supremeforever.mdi;
 
+import br.com.supremeforever.mdi.Exception.PositionOutOfBoundsException;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -13,11 +14,30 @@ import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Point2D;
 
 /**
  * Created by brisatc171.minto on 12/11/2015.
  */
 public class MDICanvas extends VBox {
+    
+    private class WidthChangeListener implements ChangeListener {
+        
+        private MDICanvas mdi;
+        private MDIWindow window;
+        
+        public WidthChangeListener(MDICanvas mdi, MDIWindow window) {
+            this.mdi = mdi;
+            this.window = window;
+        }
+        
+        @Override
+        public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+            this.mdi.centerMdiWindow(this.window);
+            observable.removeListener(this);
+        }
+    }
 
     private final ScrollPane taskBar;
     private HBox tbWindows;
@@ -25,7 +45,7 @@ public class MDICanvas extends VBox {
     private MDICanvas mdiCanvas = this;
     private final int taskbarHeightWithoutScrool = 44;
     private final int taskbarHeightWithScrool = 54;
-
+    
     /**
      * *********** CONSTRUICTOR *************
      */
@@ -102,27 +122,44 @@ public class MDICanvas extends VBox {
      */
     public void addMDIWindow(MDIWindow mdiWindow) {
         if (getItemFromMDIContainer(mdiWindow.getId()) == null) {
-            mdiWindow.setVisible(false);
-            paneMDIContainer.getChildren().add(mdiWindow);
-            Platform.runLater(() -> {
-                centerMdiWindow(mdiWindow);
-                mdiWindow.setVisible(true);
-            });
-            mdiWindow.toFront();
+            addNew(mdiWindow, null);
         } else {
-            if (getItemFromToolBar(mdiWindow.getId()) != null) {
-                tbWindows.getChildren().remove(getItemFromToolBar(mdiWindow.getId()));
-            }
-            for (int i = 0; i < paneMDIContainer.getChildren().size(); i++) {
-                Node node = paneMDIContainer.getChildren().get(i);
-                if (node.getId().equals(mdiWindow.getId())) {
-                    node.toFront();
-                    node.setVisible(true);
-                }
-            }
+            restoreExisting(mdiWindow);
+        }
+    }
+    
+    public void addMDIWindow(MDIWindow mdiWindow, Point2D position) {
+        if (getItemFromMDIContainer(mdiWindow.getId()) == null) {
+            addNew(mdiWindow, position);
+        } else {
+            restoreExisting(mdiWindow);
         }
     }
 
+    private void addNew(MDIWindow mdiWindow, Point2D position) {
+        mdiWindow.setVisible(false);
+        paneMDIContainer.getChildren().add(mdiWindow);
+        if(position == null) {
+            mdiWindow.layoutBoundsProperty().addListener(new WidthChangeListener(this, mdiWindow));
+        } else {
+            this.placeMdiWindow(mdiWindow, position);
+        }
+        mdiWindow.toFront();
+    }
+
+    private void restoreExisting(MDIWindow mdiWindow) {
+        if (getItemFromToolBar(mdiWindow.getId()) != null) {
+            tbWindows.getChildren().remove(getItemFromToolBar(mdiWindow.getId()));
+        }
+        for (int i = 0; i < paneMDIContainer.getChildren().size(); i++) {
+            Node node = paneMDIContainer.getChildren().get(i);
+            if (node.getId().equals(mdiWindow.getId())) {
+                node.toFront();
+                node.setVisible(true);
+            }
+        }
+    }
+    
     /**
      * *****************************MDI_EVENT_HANDLERS**************************
      */
@@ -182,18 +219,52 @@ public class MDICanvas extends VBox {
         }
         return null;
     }
+    
+    public void placeMdiWindow(MDIWindow mdiWindow, Point2D point) {
+        double windowsWidth = mdiWindow.getLayoutBounds().getWidth();
+        double windowsHeight = mdiWindow.getLayoutBounds().getHeight();
+        mdiWindow.setPrefSize(windowsWidth, windowsHeight);
+        
+        double containerWidth = this.paneMDIContainer.getLayoutBounds().getWidth();
+        double containerHeight = this.paneMDIContainer.getLayoutBounds().getHeight();
+        if(containerWidth <= point.getX() || containerHeight <= point.getY()) {
+            throw new PositionOutOfBoundsException(
+                "Tried to place MDI Window with ID " + mdiWindow.getId() +
+                " at a coordinate " + point.toString() + 
+                " that is beyond current size of the MDI container " + 
+                containerWidth + "px x " + containerHeight + "px."
+            );
+        }
+        
+        if((containerWidth - point.getX() < 40) || 
+            (containerHeight - point.getY() < 40)) {
+            throw new PositionOutOfBoundsException(
+                "Tried to place MDI Window with ID " + mdiWindow.getId() +
+                " at a coordinate " + point.toString() + 
+                " that is too close to the edge of the parent of size " + 
+                containerWidth + "px x " + containerHeight + "px " +
+                " for user to comfortably grab the title bar with the mouse."
+            );
+        }
+        
+        mdiWindow.setLayoutX((int)point.getX());
+        mdiWindow.setLayoutY((int)point.getY());
+        mdiWindow.setVisible(true);
+    }
 
     public void centerMdiWindow(MDIWindow mdiWindow) {
-        try {
-            double w = getPaneMDIContainer().getLayoutBounds().getWidth();
-            double h = getPaneMDIContainer().getLayoutBounds().getHeight();
-            double windowsHeight = mdiWindow.getLayoutBounds().getHeight();//((AnchorPane) ((AnchorPane) mdiWindow.getCenter()).getChildren().get(0)).getHeight() + ((AnchorPane) mdiWindow.getTop()).getHeight();//
-            double windowsWidth = mdiWindow.getLayoutBounds().getWidth();//((AnchorPane) ((AnchorPane) mdiWindow.getCenter()).getChildren().get(0)).getWidth();//
-            mdiWindow.setPrefSize(windowsWidth, windowsHeight);
-            mdiWindow.setLayoutX((int) (w / 2) - (int) (windowsWidth / 2));
-            mdiWindow.setLayoutY((int) (h / 2) - (int) (windowsHeight / 2));
+        double w = getPaneMDIContainer().getLayoutBounds().getWidth();
+        double h = getPaneMDIContainer().getLayoutBounds().getHeight();
+        
+        Platform.runLater(() -> {
+            double windowsWidth = mdiWindow.getLayoutBounds().getWidth();
+            double windowsHeight = mdiWindow.getLayoutBounds().getHeight();
 
-        } catch (Exception e) {
-        }
+            Point2D centerCoordinate = new Point2D(
+                    (int) (w / 2) - (int) (windowsWidth / 2),
+                    (int) (h / 2) - (int) (windowsHeight / 2)
+            );
+            this.placeMdiWindow(mdiWindow, centerCoordinate);
+        });
     }
 }
