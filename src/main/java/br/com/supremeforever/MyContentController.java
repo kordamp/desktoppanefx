@@ -1,5 +1,6 @@
 package br.com.supremeforever;
 
+import br.com.supremeforever.mdi.MDICanvas;
 import br.com.supremeforever.mdi.MDIWindow;
 import br.com.supremeforever.mdi.Utility;
 import javafx.animation.RotateTransition;
@@ -59,6 +60,10 @@ public class MyContentController implements Initializable {
     private Button btnRotate;
     @FXML
     private Hyperlink link;
+    @FXML
+    private Button btnDarkTheme;
+    @FXML
+    private Button  btnDefaultTheme;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -76,7 +81,21 @@ public class MyContentController implements Initializable {
         btnAlignBOTTOM_CENTERHandler();
         btnAlignTOP_CENTERHandler();
         btnRotateHandler();
+        btnDarkThemeHandler();
+        btnDefaultThemeHandler();
         linkHandler();
+    }
+
+    private void btnDefaultThemeHandler() {
+        btnDefaultTheme.setOnAction(event -> {
+            MDICanvas.setTheme(MDICanvas.Theme.DEFAULT);
+        });
+    }
+
+    private void btnDarkThemeHandler() {
+        btnDarkTheme.setOnAction(event -> {
+            MDICanvas.setTheme(MDICanvas.Theme.DARK);
+        });
     }
 
     private void btnAlignTOP_CENTERHandler() {

@@ -114,9 +114,7 @@ public class MDIWindow extends BorderPane {
         bringToFrontListener();
 
         this.setPrefSize(200, 200);
-        this.setStyle("-fx-border-color: #C4C4C4;"
-                + "-fx-background-radius: 10 10 0 0;"
-                + "-fx-border-radius: 10 10 0 0;");
+        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
 
         this.setTop(makeTitlePane(title));
         mdiContent = makeContentPane(content);
@@ -135,10 +133,7 @@ public class MDIWindow extends BorderPane {
         // HEADER:
         AnchorPane paneTitle = new AnchorPane();
         paneTitle.setPrefHeight(32);
-        paneTitle.setStyle("-fx-background-color: linear-gradient(to bottom, -fx-base, derive(#E9E9E9,10%),derive(#D0D0D0,10%),derive(#E9E9E9,10%));"
-                + " -fx-border-color: transparent transparent #C4C4C4 transparent;"
-                + " -fx-background-radius: 10 10 0 0;"
-                + " -fx-border-radius: 10 10 0 0;");
+        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
         // TITLE:
         paneTitle.getChildren().add(makeTitle(title));
         paneTitle.setPadding(new Insets(0, 11, 0, 0));
@@ -146,14 +141,17 @@ public class MDIWindow extends BorderPane {
         // Read from an input stream
 
         btnClose = new Button("", getImageFromAssets("close.png"));
+        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnClose.setOnMouseClicked((MouseEvent t) -> {
             closeMdiWindow();
         });
         btnMinimize = new Button("", getImageFromAssets("minimize.png"));
+        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnMinimize.setOnMouseClicked((MouseEvent t) -> {
             minimizeMdiWindow();
         });
         btnMaximize = new Button("", getImageFromAssets("maximize.png"));
+        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnMaximize.setOnMouseClicked((MouseEvent t) -> {
             maximizeRestoreMdiWindow();
         });
@@ -219,7 +217,9 @@ public class MDIWindow extends BorderPane {
         hbLeft.setSpacing(10d);
         ImageView imvLogo = imgLogo != null ? imgLogo : new ImageView();
         lblTitle = new Label(title);
-        lblTitle.setStyle("-fx-font-weight: bold;");
+//        lblTitle.setStyle("-fx-font-weight: bold;");
+        lblTitle.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
+
         hbLeft.getChildren().add(imvLogo);
         hbLeft.getChildren().add(lblTitle);
         hbLeft.setAlignment(Pos.CENTER_LEFT);

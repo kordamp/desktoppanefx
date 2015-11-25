@@ -64,13 +64,18 @@ public class MDICanvas extends VBox {
         tbWindows.setAlignment(Pos.CENTER_LEFT);
         setVgrow(paneMDIContainer, Priority.ALWAYS);
         taskBar = new ScrollPane(tbWindows);
+        Platform.runLater(() -> {
+           Node viewport = taskBar.lookup(".viewport");
+            try{
+                viewport.setStyle(" -fx-background-color: transparent; ");
+            }catch (Exception e){}
+        });
         taskBar.setMaxHeight(taskbarHeightWithoutScrool);
         taskBar.setMinHeight(taskbarHeightWithoutScrool);
         taskBar.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         taskBar.setVmax(0);
-        taskBar.setStyle(" -fx-border-color: #C4C4C4; "
-                + " -fx-faint-focus-color: transparent; "
-                + " -fx-focus-color: transparent; ");
+        taskBar.styleProperty().bind(StylesCSS.taskBarStyleProperty);
+
         tbWindows.widthProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             Platform.runLater(() -> {
                 if ((double) newValue <= taskBar.getWidth()) {
@@ -221,6 +226,27 @@ public class MDICanvas extends VBox {
         return null;
     }
 
+    public static void setTheme(Theme theme) {
+        switch (theme) {
+            case DEFAULT:
+                StylesCSS.taskBarStyleProperty.setValue(StylesCSS.defaultTaskBarStyleCSS);
+                StylesCSS.taskBarIconStyleProperty.setValue(StylesCSS.defaultTaskBarIconStyleCSS);
+                StylesCSS.taskBarIconTextStyleProperty.setValue(StylesCSS.defaultTaskBarIconTextStyleCSS);
+                StylesCSS.controlButtonsStyleProperty.setValue(StylesCSS.defaultControlButtonsStyleCSS);
+                StylesCSS.mdiTitleBarStyleProperty.setValue(StylesCSS.defaultMdiTitleBarStyleCSS);
+                StylesCSS.mdiStyleProperty.setValue(StylesCSS.defaultMdiStyleCSS);
+                break;
+            case DARK:
+                StylesCSS.taskBarStyleProperty.setValue(StylesCSS.darkTaskBarStyleCSS);
+                StylesCSS.taskBarIconStyleProperty.setValue(StylesCSS.darkTaskBarIconStyleCSS);
+                StylesCSS.taskBarIconTextStyleProperty.setValue(StylesCSS.darkTaskBarIconTextStyleCSS);
+                StylesCSS.controlButtonsStyleProperty.setValue(StylesCSS.darkControlButtonsStyleCSS);
+                StylesCSS.mdiTitleBarStyleProperty.setValue(StylesCSS.darkMdiTitleBarStyleCSS);
+                StylesCSS.mdiStyleProperty.setValue(StylesCSS.darkMdiStyleCSS);
+                break;
+        }
+    }
+
     public void placeMdiWindow(MDIWindow mdiWindow, MDIWindow.AlignPosition alignPosition) {
         double canvasH = getPaneMDIContainer().getLayoutBounds().getHeight();
         double canvasW = getPaneMDIContainer().getLayoutBounds().getWidth();
@@ -253,7 +279,7 @@ public class MDICanvas extends VBox {
                 placeMdiWindow(mdiWindow, new Point2D((int) canvasW - (int) mdiW, (int) canvasH - (int) mdiH));
                 break;
             case BOTTOM_CENTER:
-                placeMdiWindow(mdiWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2),(int) canvasH - (int) mdiH));
+                placeMdiWindow(mdiWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2), (int) canvasH - (int) mdiH));
                 break;
         }
     }
@@ -304,5 +330,11 @@ public class MDICanvas extends VBox {
             );
             this.placeMdiWindow(mdiWindow, centerCoordinate);
         });
+    }
+
+    public enum Theme {
+
+        DEFAULT,
+        DARK
     }
 }

@@ -66,6 +66,8 @@
             <FlowPane alignment="CENTER" hgap="10.0" prefHeight="0.0" prefWidth="600.0" vgap="10.0">
                <children>
                   <Button fx:id="btnRotate" mnemonicParsing="false" text="Rotate =)" />
+                  <Button fx:id="btnDarkTheme" mnemonicParsing="false" style="-fx-base: gray;" text="Dark Theme" />
+                  <Button fx:id="btnDefaultTheme" mnemonicParsing="false" text="Default Theme" />
                </children>
             </FlowPane>
             <Hyperlink fx:id="link" text="www.supremeforever.com.br" />

@@ -30,23 +30,17 @@ public class MDIIcon extends Button {
         super();
         HBox hBox = new HBox();
         hBox.setStyle("-fx-alignment:center-left");
-        setStyle("-fx-background-color:  "
-                + " linear-gradient(#f2f2f2, #d6d6d6), "
-                + " linear-gradient(#fcfcfc 0%, #d9d9d9 20%, #d6d6d6 100%), "
-                + " linear-gradient(#dddddd 0%, #f6f6f6 50%); "
-                + " -fx-background-radius: 8,7,6; "
-                + " -fx-background-insets: 0,1,2; "
-                + " -fx-text-fill: black; "
-                + " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
+        styleProperty().bind(StylesCSS.taskBarIconStyleProperty);
         //setStyle(cssDefault);
         hBox.setSpacing(10d);
         hBox.setPadding(new Insets(0, 10, 0, 10));
         this.mdiCanvas = mdiCanvas;
         lblName = new Label(name);
-        lblName.setStyle("-fx-font-weight: bold;");
+        lblName.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
         addEventHandler(MouseEvent.MOUSE_CLICKED, handleMaximize);
 
         btnClose = new Button("", getImageFromAssets("close.png"));
+        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
 //Adding the shadow when the mouse cursor is on
         final DropShadow shadowCloseBtn = new DropShadow();
         shadowCloseBtn.setHeight(10d);
