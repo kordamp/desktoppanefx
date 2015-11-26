@@ -114,7 +114,8 @@ public class MDIWindow extends BorderPane {
         bringToFrontListener();
 
         this.setPrefSize(200, 200);
-        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
+        getStyleClass().add("mdiWindow");
+//        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
 
         this.setTop(makeTitlePane(title));
         mdiContent = makeContentPane(content);
@@ -133,7 +134,8 @@ public class MDIWindow extends BorderPane {
         // HEADER:
         AnchorPane paneTitle = new AnchorPane();
         paneTitle.setPrefHeight(32);
-        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
+        paneTitle.getStyleClass().add("mdiWindowTitleBar");
+//        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
         // TITLE:
         paneTitle.getChildren().add(makeTitle(title));
         paneTitle.setPadding(new Insets(0, 11, 0, 0));
@@ -141,17 +143,20 @@ public class MDIWindow extends BorderPane {
         // Read from an input stream
 
         btnClose = new Button("", getImageFromAssets("close.png"));
-        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
+        btnClose.getStyleClass().add("controlButtons");
+//        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnClose.setOnMouseClicked((MouseEvent t) -> {
             closeMdiWindow();
         });
         btnMinimize = new Button("", getImageFromAssets("minimize.png"));
-        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
+        btnMinimize.getStyleClass().add("controlButtons");
+//        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnMinimize.setOnMouseClicked((MouseEvent t) -> {
             minimizeMdiWindow();
         });
         btnMaximize = new Button("", getImageFromAssets("maximize.png"));
-        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
+        btnMaximize.getStyleClass().add("controlButtons");
+//        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnMaximize.setOnMouseClicked((MouseEvent t) -> {
             maximizeRestoreMdiWindow();
         });
@@ -217,8 +222,9 @@ public class MDIWindow extends BorderPane {
         hbLeft.setSpacing(10d);
         ImageView imvLogo = imgLogo != null ? imgLogo : new ImageView();
         lblTitle = new Label(title);
+        lblTitle.getStyleClass().add("titleText");
 //        lblTitle.setStyle("-fx-font-weight: bold;");
-        lblTitle.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
+        //lblTitle.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
 
         hbLeft.getChildren().add(imvLogo);
         hbLeft.getChildren().add(lblTitle);

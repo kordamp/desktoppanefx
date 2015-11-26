@@ -6,12 +6,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,13 +53,25 @@ public class MDICanvas extends VBox {
     /**
      * *********** CONSTRUICTOR *************
      */
-    public MDICanvas() {
+    public MDICanvas(Theme theme) {
         super();
+
+        Platform.runLater(()->{
+            switch (theme) {
+                case DEFAULT:
+                    setTheme(Theme.DEFAULT, this.getScene());
+                    break;
+                case DARK:
+                    setTheme(Theme.DARK, this.getScene());
+                    break;
+            }
+        });
+
         setAlignment(Pos.TOP_LEFT);
 
         paneMDIContainer = new AnchorPane();
         paneMDIContainer.setId("MDIContainer");
-
+        paneMDIContainer.getStyleClass().add("mdiCanvasContainer");
         tbWindows = new HBox();
         tbWindows.setSpacing(3);
         tbWindows.setMaxHeight(taskbarHeightWithoutScrool);
@@ -65,16 +80,18 @@ public class MDICanvas extends VBox {
         setVgrow(paneMDIContainer, Priority.ALWAYS);
         taskBar = new ScrollPane(tbWindows);
         Platform.runLater(() -> {
-           Node viewport = taskBar.lookup(".viewport");
-            try{
+            Node viewport = taskBar.lookup(".viewport");
+            try {
                 viewport.setStyle(" -fx-background-color: transparent; ");
-            }catch (Exception e){}
+            } catch (Exception e) {
+            }
         });
         taskBar.setMaxHeight(taskbarHeightWithoutScrool);
         taskBar.setMinHeight(taskbarHeightWithoutScrool);
         taskBar.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         taskBar.setVmax(0);
-        taskBar.styleProperty().bind(StylesCSS.taskBarStyleProperty);
+        taskBar.getStyleClass().add("taskBar");
+        //taskBar.styleProperty().bind(StylesCSS.taskBarStyleProperty);
 
         tbWindows.widthProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
             Platform.runLater(() -> {
@@ -226,23 +243,26 @@ public class MDICanvas extends VBox {
         return null;
     }
 
-    public static void setTheme(Theme theme) {
+    public static void setTheme(Theme theme, Scene scene) {
+        File f = null;
         switch (theme) {
             case DEFAULT:
-                StylesCSS.taskBarStyleProperty.setValue(StylesCSS.defaultTaskBarStyleCSS);
-                StylesCSS.taskBarIconStyleProperty.setValue(StylesCSS.defaultTaskBarIconStyleCSS);
-                StylesCSS.taskBarIconTextStyleProperty.setValue(StylesCSS.defaultTaskBarIconTextStyleCSS);
-                StylesCSS.controlButtonsStyleProperty.setValue(StylesCSS.defaultControlButtonsStyleCSS);
-                StylesCSS.mdiTitleBarStyleProperty.setValue(StylesCSS.defaultMdiTitleBarStyleCSS);
-                StylesCSS.mdiStyleProperty.setValue(StylesCSS.defaultMdiStyleCSS);
+                try {
+                    f = new File(MDICanvas.class.getResource("/style/DefaultTheme.css").toURI());
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                scene.getStylesheets().clear();
+                scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
                 break;
             case DARK:
-                StylesCSS.taskBarStyleProperty.setValue(StylesCSS.darkTaskBarStyleCSS);
-                StylesCSS.taskBarIconStyleProperty.setValue(StylesCSS.darkTaskBarIconStyleCSS);
-                StylesCSS.taskBarIconTextStyleProperty.setValue(StylesCSS.darkTaskBarIconTextStyleCSS);
-                StylesCSS.controlButtonsStyleProperty.setValue(StylesCSS.darkControlButtonsStyleCSS);
-                StylesCSS.mdiTitleBarStyleProperty.setValue(StylesCSS.darkMdiTitleBarStyleCSS);
-                StylesCSS.mdiStyleProperty.setValue(StylesCSS.darkMdiStyleCSS);
+                try {
+                    f = new File(MDICanvas.class.getResource("/style/DarkTheme.css").toURI());
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                scene.getStylesheets().clear();
+                scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
                 break;
         }
     }
@@ -335,6 +355,6 @@ public class MDICanvas extends VBox {
     public enum Theme {
 
         DEFAULT,
-        DARK
+        DARK,
     }
 }

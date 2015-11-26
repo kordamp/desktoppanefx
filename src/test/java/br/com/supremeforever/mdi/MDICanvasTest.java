@@ -19,7 +19,7 @@ public class MDICanvasTest extends GuiTest {
     
     @Override
     public Parent getRootNode() {
-        this.mdi = new MDICanvas();
+        this.mdi = new MDICanvas(MDICanvas.Theme.DEFAULT);
         this.mdi.setPrefWidth(this.testCanvasWidth);
         this.mdi.setPrefHeight(this.testCanvasHeight);
         return this.mdi;

@@ -63,7 +63,7 @@ public class MyContentController implements Initializable {
     @FXML
     private Button btnDarkTheme;
     @FXML
-    private Button  btnDefaultTheme;
+    private Button btnDefaultTheme;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -88,13 +88,13 @@ public class MyContentController implements Initializable {
 
     private void btnDefaultThemeHandler() {
         btnDefaultTheme.setOnAction(event -> {
-            MDICanvas.setTheme(MDICanvas.Theme.DEFAULT);
+            MDICanvas.setTheme(MDICanvas.Theme.DEFAULT, mainPane.getScene());
         });
     }
 
     private void btnDarkThemeHandler() {
         btnDarkTheme.setOnAction(event -> {
-            MDICanvas.setTheme(MDICanvas.Theme.DARK);
+            MDICanvas.setTheme(MDICanvas.Theme.DARK, mainPane.getScene());
         });
     }
 

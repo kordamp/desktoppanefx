@@ -26,7 +26,7 @@ public class Main extends Application {
         AnchorPane mainPane = new AnchorPane();
         mainPane.setPrefSize(800, 600);
         //Creat MDI Canvas Container
-        MDICanvas mdiCanvas = new MDICanvas();
+        MDICanvas mdiCanvas = new MDICanvas(MDICanvas.Theme.DEFAULT);
         //Fit it to the main Pane
         AnchorPane.setBottomAnchor(mdiCanvas, 0d);
         AnchorPane.setLeftAnchor(mdiCanvas, 0d);
