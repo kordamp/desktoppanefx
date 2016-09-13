@@ -247,22 +247,29 @@ public class MDICanvas extends VBox {
         File f = null;
         switch (theme) {
             case DEFAULT:
-                try {
-                    f = new File(MDICanvas.class.getResource("/style/DefaultTheme.css").toURI());
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
+                // BUG REPORTED BY: Graf László
+                //try {
+                //    f = new File(MDICanvas.class.getResource("/style/DefaultTheme.css").toURI());
+                //} catch (URISyntaxException e) {
+                //    e.printStackTrace();
+                //}
+                //scene.getStylesheets().clear();
+                //scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
+                String css = MDICanvas.class.getResource("/style/DefaultTheme.css").toExternalForm();
                 scene.getStylesheets().clear();
-                scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
+                scene.getStylesheets().add(css);
                 break;
             case DARK:
-                try {
-                    f = new File(MDICanvas.class.getResource("/style/DarkTheme.css").toURI());
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
+                //try {
+                //    f = new File(MDICanvas.class.getResource("/style/DarkTheme.css").toURI());
+                //} catch (URISyntaxException e) {
+                //    e.printStackTrace();
+                //}
+                //scene.getStylesheets().clear();
+                //scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
+                String cssDark = MDICanvas.class.getResource("/style/DarkTheme.css").toExternalForm();
                 scene.getStylesheets().clear();
-                scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
+                scene.getStylesheets().add(cssDark);
                 break;
         }
     }
