@@ -1,1 +1,6 @@
 apply plugin: 'java'
+
+dependencies {
+    compile "org.kordamp.ikonli:ikonli-javafx:$ikonliVersion"
+    compile "org.kordamp.ikonli:ikonli-materialdesign-pack:$ikonliVersion"
+}

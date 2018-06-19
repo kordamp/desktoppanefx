@@ -39,6 +39,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
 
 import java.io.InputStream;
 import java.util.logging.Level;
@@ -77,6 +79,7 @@ public class InternalWindow extends BorderPane {
      * @param logoImage
      * @param title
      * @param content
+     *
      * @throws Exception
      */
     public InternalWindow(String mdiWindowID, ImageView logoImage, String title, Node content) {
@@ -88,6 +91,7 @@ public class InternalWindow extends BorderPane {
      * @param title
      * @param content
      * @param disableResize
+     *
      * @throws Exception
      */
     public InternalWindow(String mdiWindowID, ImageView logoImage, String title, Node content, boolean disableResize) {
@@ -101,6 +105,7 @@ public class InternalWindow extends BorderPane {
      * @param content
      * @param disableResize
      * @param maximize
+     *
      * @throws Exception
      */
     public InternalWindow(String mdiWindowID, ImageView logoImage, String title, Node content, boolean disableResize, boolean maximize) {
@@ -121,7 +126,7 @@ public class InternalWindow extends BorderPane {
 
         this.setPrefSize(200, 200);
         getStyleClass().add("internal-window");
-//        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
+        //        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
 
         this.setTop(makeTitlePane(title));
         mdiContent = makeContentPane(content);
@@ -141,31 +146,25 @@ public class InternalWindow extends BorderPane {
         AnchorPane paneTitle = new AnchorPane();
         paneTitle.setPrefHeight(32);
         paneTitle.getStyleClass().add("internal-window-titlebar");
-//        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
+        //        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
         // TITLE:
         paneTitle.getChildren().add(makeTitle(title));
         paneTitle.setPadding(new Insets(0, 11, 0, 0));
         // BUTTONS:
         // Read from an input stream
 
-        btnClose = new Button("", getImageFromAssets("close.png"));
+        btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
         btnClose.getStyleClass().add("internal-window-titlebar-button");
-//        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
-        btnClose.setOnMouseClicked((MouseEvent t) -> {
-            closeMdiWindow();
-        });
-        btnMinimize = new Button("", getImageFromAssets("minimize.png"));
+        //        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
+        btnClose.setOnMouseClicked((MouseEvent t) -> closeMdiWindow());
+        btnMinimize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MINIMIZE));
         btnMinimize.getStyleClass().add("internal-window-titlebar-button");
-//        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
-        btnMinimize.setOnMouseClicked((MouseEvent t) -> {
-            minimizeMdiWindow();
-        });
-        btnMaximize = new Button("", getImageFromAssets("maximize.png"));
+        //        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
+        btnMinimize.setOnMouseClicked((MouseEvent t) -> minimizeMdiWindow());
+        btnMaximize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
         btnMaximize.getStyleClass().add("internal-window-titlebar-button");
-//        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
-        btnMaximize.setOnMouseClicked((MouseEvent t) -> {
-            maximizeRestoreMdiWindow();
-        });
+        //        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
+        btnMaximize.setOnMouseClicked((MouseEvent t) -> maximizeRestoreMdiWindow());
         if (!disableResize) {
             paneTitle.getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
             //double click on title bar
@@ -196,7 +195,7 @@ public class InternalWindow extends BorderPane {
             previousWidthToResize = getWidth();
             isMaximized = true;
             try {
-                btnMaximize.setGraphic(getImageFromAssets("restore.png"));
+                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_RESTORE));
             } catch (Exception ex) {
                 Logger.getLogger(InternalWindow.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -205,7 +204,7 @@ public class InternalWindow extends BorderPane {
             setPrefSize(previousWidthToResize, previousHeightToResize);
             isMaximized = false;
             try {
-                btnMaximize.setGraphic(getImageFromAssets("maximize.png"));
+                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
             } catch (Exception ex) {
                 Logger.getLogger(InternalWindow.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -229,7 +228,7 @@ public class InternalWindow extends BorderPane {
         ImageView imvLogo = imgLogo != null ? imgLogo : new ImageView();
         lblTitle = new Label(title);
         lblTitle.getStyleClass().add("internal-window-titlebar-title");
-//        lblTitle.setStyle("-fx-font-weight: bold;");
+        //        lblTitle.setStyle("-fx-font-weight: bold;");
         //lblTitle.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
 
         hbLeft.getChildren().add(imvLogo);
@@ -303,7 +302,7 @@ public class InternalWindow extends BorderPane {
                         } //Only The Bottom with Right Resize
                         else if ((RESIZE_RIGHT && !RESIZE_TOP && RESIZE_BOTTOM)) {
                             if (dragEvent.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())
-                                    && dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
+                                && dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
                                 setPrefWidth(dragEvent.getX());
                                 setPrefHeight(dragEvent.getY());
                             } else {
@@ -385,21 +384,15 @@ public class InternalWindow extends BorderPane {
     }
 
     public void placeMdiWindow(AlignPosition alignPosition) {
-        Platform.runLater(() -> {
-            ((DesktopPane) this.getParent().getParent()).placeMdiWindow(this, alignPosition);
-        });
+        Platform.runLater(() -> ((DesktopPane) this.getParent().getParent()).placeMdiWindow(this, alignPosition));
     }
 
     public void placeMdiWindow(Point2D point) {
-        Platform.runLater(() -> {
-            ((DesktopPane) this.getParent().getParent()).placeMdiWindow(this, point);
-        });
+        Platform.runLater(() -> ((DesktopPane) this.getParent().getParent()).placeMdiWindow(this, point));
     }
 
     public void centerMdiWindow() {
-        Platform.runLater(() -> {
-            ((DesktopPane) this.getParent().getParent()).centerMdiWindow(this);
-        });
+        Platform.runLater(() -> ((DesktopPane) this.getParent().getParent()).centerMdiWindow(this));
     }
 
     public void closeMdiWindow() {
@@ -427,9 +420,7 @@ public class InternalWindow extends BorderPane {
     }
 
     private void bringToFrontListener() {
-        this.setOnMouseClicked((MouseEvent t) -> {
-            borderPane.toFront();
-        });
+        this.setOnMouseClicked((MouseEvent t) -> borderPane.toFront());
     }
 
     private ImageView getImageFromAssets(String imageName) {
@@ -453,7 +444,6 @@ public class InternalWindow extends BorderPane {
     }
 
     enum ResizeMode {
-
         NONE,
         TOP,
         LEFT,
@@ -466,7 +456,6 @@ public class InternalWindow extends BorderPane {
     }
 
     public enum AlignPosition {
-
         CENTER,
         CENTER_LEFT,
         CENTER_RIGHT,
@@ -481,7 +470,6 @@ public class InternalWindow extends BorderPane {
     public BooleanProperty getIsClosedProperty() {
         return isClosed;
     }
-
 
     public boolean isClosed() {
         return isClosed.getValue();
@@ -514,5 +502,4 @@ public class InternalWindow extends BorderPane {
     public void setBtnMinimize(Button btnMinimize) {
         this.btnMinimize = btnMinimize;
     }
-
 }
