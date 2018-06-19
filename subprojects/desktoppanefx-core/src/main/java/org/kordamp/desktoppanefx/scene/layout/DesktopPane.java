@@ -16,64 +16,50 @@
 package org.kordamp.desktoppanefx.scene.layout;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javafx.beans.value.ChangeListener;
-import javafx.geometry.Point2D;
 
 /**
  * @author Lincoln Minto
  * @author Andres Almiray
  */
 public class DesktopPane extends VBox {
-    private final AnchorPane paneMDIContainer;
+    private final AnchorPane internalWindowContainer;
     private final ScrollPane taskBar;
     private HBox tbWindows;
     private DesktopPane desktopPane = this;
-    private final int taskbarHeightWithoutScroll = 44;
-    private final int taskbarHeightWithScroll = 54;
+    private final int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
+    private final int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 10;
 
     /**
      * *********** CONSTRUICTOR *************
      */
-    public DesktopPane(Theme theme) {
+    public DesktopPane() {
         super();
-
-        Platform.runLater(()->{
-            switch (theme) {
-                case DEFAULT:
-                    setTheme(Theme.DEFAULT, this.getScene());
-                    break;
-                case DARK:
-                    setTheme(Theme.DARK, this.getScene());
-                    break;
-            }
-        });
-
+        getStylesheets().add("/org/kordamp/desktoppanefx/scene/layout/default-desktoppane-stylesheet.css");
         setAlignment(Pos.TOP_LEFT);
 
-        paneMDIContainer = new AnchorPane();
-        paneMDIContainer.setId("MDIContainer");
-        paneMDIContainer.getStyleClass().add("mdiCanvasContainer");
+        internalWindowContainer = new AnchorPane();
+        internalWindowContainer.getStyleClass().add("desktoppane");
         tbWindows = new HBox();
         tbWindows.setSpacing(3);
-        tbWindows.setMaxHeight(taskbarHeightWithoutScroll);
-        tbWindows.setMinHeight(taskbarHeightWithoutScroll);
+        tbWindows.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
+        tbWindows.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
         tbWindows.setAlignment(Pos.CENTER_LEFT);
-        setVgrow(paneMDIContainer, Priority.ALWAYS);
+        setVgrow(internalWindowContainer, Priority.ALWAYS);
         taskBar = new ScrollPane(tbWindows);
         Platform.runLater(() -> {
             Node viewport = taskBar.lookup(".viewport");
@@ -82,27 +68,26 @@ public class DesktopPane extends VBox {
             } catch (Exception e) {
             }
         });
-        taskBar.setMaxHeight(taskbarHeightWithoutScroll);
-        taskBar.setMinHeight(taskbarHeightWithoutScroll);
+        taskBar.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
+        taskBar.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
         taskBar.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         taskBar.setVmax(0);
-        taskBar.getStyleClass().add("taskBar");
-        //taskBar.styleProperty().bind(StylesCSS.taskBarStyleProperty);
+        taskBar.getStyleClass().add("desktoppane-taskbar");
 
-        tbWindows.widthProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+        tbWindows.widthProperty().addListener((o, v, n) -> {
             Platform.runLater(() -> {
-                if ((double) newValue <= taskBar.getWidth()) {
-                    taskBar.setMaxHeight(taskbarHeightWithoutScroll);
-                    taskBar.setPrefHeight(taskbarHeightWithoutScroll);
-                    taskBar.setMinHeight(taskbarHeightWithoutScroll);
+                if (n.doubleValue() <= taskBar.getWidth()) {
+                    taskBar.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
+                    taskBar.setPrefHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
+                    taskBar.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
                 } else {
-                    taskBar.setMaxHeight(taskbarHeightWithScroll);
-                    taskBar.setPrefHeight(taskbarHeightWithScroll);
-                    taskBar.setMinHeight(taskbarHeightWithScroll);
+                    taskBar.setMaxHeight(TASKBAR_HEIGHT_WITH_SCROLL);
+                    taskBar.setPrefHeight(TASKBAR_HEIGHT_WITH_SCROLL);
+                    taskBar.setMinHeight(TASKBAR_HEIGHT_WITH_SCROLL);
                 }
             });
         });
-        getChildren().addAll(paneMDIContainer, taskBar);
+        getChildren().addAll(internalWindowContainer, taskBar);
 
         addEventHandler(MDIEvent.EVENT_CLOSED, mdiCloseHandler);
         addEventHandler(MDIEvent.EVENT_MINIMIZED, mdiMinimizedHandler);
@@ -111,11 +96,11 @@ public class DesktopPane extends VBox {
     /**
      * ***********************GETTER***********************************
      */
-    public AnchorPane getPaneMDIContainer() {
-        return paneMDIContainer;
+    public Pane getInternalWindowContainer() {
+        return internalWindowContainer;
     }
 
-    public HBox getTbWindows() {
+    public Pane getTbWindows() {
         return tbWindows;
     }
 
@@ -129,7 +114,7 @@ public class DesktopPane extends VBox {
         if (mdi != null) {
             getItemFromMDIContainer(mdiWindowID).isClosed(true);
 
-            paneMDIContainer.getChildren().remove(mdi);
+            internalWindowContainer.getChildren().remove(mdi);
         }
         if (iconBar != null) {
             tbWindows.getChildren().remove(iconBar);
@@ -157,7 +142,7 @@ public class DesktopPane extends VBox {
 
     private void addNew(InternalWindow internalWindow, Point2D position) {
         internalWindow.setVisible(false);
-        paneMDIContainer.getChildren().add(internalWindow);
+        internalWindowContainer.getChildren().add(internalWindow);
         if (position == null) {
             internalWindow.layoutBoundsProperty().addListener(new WidthChangeListener(this, internalWindow));
         } else {
@@ -170,8 +155,8 @@ public class DesktopPane extends VBox {
         if (getItemFromToolBar(internalWindow.getId()) != null) {
             tbWindows.getChildren().remove(getItemFromToolBar(internalWindow.getId()));
         }
-        for (int i = 0; i < paneMDIContainer.getChildren().size(); i++) {
-            Node node = paneMDIContainer.getChildren().get(i);
+        for (int i = 0; i < internalWindowContainer.getChildren().size(); i++) {
+            Node node = internalWindowContainer.getChildren().get(i);
             if (node.getId().equals(internalWindow.getId())) {
                 node.toFront();
                 node.setVisible(true);
@@ -197,7 +182,7 @@ public class DesktopPane extends VBox {
             String id = win.getId();
             if (getItemFromToolBar(id) == null) {
                 try {
-                    MDIIcon icon = new MDIIcon(event.imgLogo, desktopPane, win.getWindowsTitle());
+                    TaskBarIcon icon = new TaskBarIcon(event.imgLogo, desktopPane, win.getWindowsTitle());
                     icon.setId(win.getId());
                     icon.getBtnClose().disableProperty().bind(win.getBtnClose().disableProperty());
                     tbWindows.getChildren().add(icon);
@@ -212,10 +197,10 @@ public class DesktopPane extends VBox {
     /**
      * ***************** UTILITIES******************************************
      */
-    public MDIIcon getItemFromToolBar(String id) {
+    public TaskBarIcon getItemFromToolBar(String id) {
         for (Node node : tbWindows.getChildren()) {
-            if (node instanceof MDIIcon) {
-                MDIIcon icon = (MDIIcon) node;
+            if (node instanceof TaskBarIcon) {
+                TaskBarIcon icon = (TaskBarIcon) node;
                 //String key = icon.getLblName().getText();
                 String key = icon.getId();
                 if (key.equalsIgnoreCase(id)) {
@@ -227,7 +212,7 @@ public class DesktopPane extends VBox {
     }
 
     public InternalWindow getItemFromMDIContainer(String id) {
-        for (Node node : paneMDIContainer.getChildren()) {
+        for (Node node : internalWindowContainer.getChildren()) {
             if (node instanceof InternalWindow) {
                 InternalWindow win = (InternalWindow) node;
                 if (win.getId().equals(id)) {
@@ -239,40 +224,9 @@ public class DesktopPane extends VBox {
         return null;
     }
 
-    public static void setTheme(Theme theme, Scene scene) {
-        File f = null;
-        switch (theme) {
-            case DEFAULT:
-                // BUG REPORTED BY: Graf László
-                //try {
-                //    f = new File(MDICanvas.class.getResource("/style/DefaultTheme.css").toURI());
-                //} catch (URISyntaxException e) {
-                //    e.printStackTrace();
-                //}
-                //scene.getStylesheets().clear();
-                //scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
-                String css = DesktopPane.class.getResource("/style/DefaultTheme.css").toExternalForm();
-                scene.getStylesheets().clear();
-                scene.getStylesheets().add(css);
-                break;
-            case DARK:
-                //try {
-                //    f = new File(MDICanvas.class.getResource("/style/DarkTheme.css").toURI());
-                //} catch (URISyntaxException e) {
-                //    e.printStackTrace();
-                //}
-                //scene.getStylesheets().clear();
-                //scene.getStylesheets().add("file:///" + f.getAbsolutePath().replace("\\", "/"));
-                String cssDark = DesktopPane.class.getResource("/style/DarkTheme.css").toExternalForm();
-                scene.getStylesheets().clear();
-                scene.getStylesheets().add(cssDark);
-                break;
-        }
-    }
-
     public void placeMdiWindow(InternalWindow internalWindow, InternalWindow.AlignPosition alignPosition) {
-        double canvasH = getPaneMDIContainer().getLayoutBounds().getHeight();
-        double canvasW = getPaneMDIContainer().getLayoutBounds().getWidth();
+        double canvasH = getInternalWindowContainer().getLayoutBounds().getHeight();
+        double canvasW = getInternalWindowContainer().getLayoutBounds().getWidth();
         double mdiH = internalWindow.getLayoutBounds().getHeight();
         double mdiW = internalWindow.getLayoutBounds().getWidth();
 
@@ -312,25 +266,25 @@ public class DesktopPane extends VBox {
         double windowsHeight = internalWindow.getLayoutBounds().getHeight();
         internalWindow.setPrefSize(windowsWidth, windowsHeight);
 
-        double containerWidth = this.paneMDIContainer.getLayoutBounds().getWidth();
-        double containerHeight = this.paneMDIContainer.getLayoutBounds().getHeight();
+        double containerWidth = this.internalWindowContainer.getLayoutBounds().getWidth();
+        double containerHeight = this.internalWindowContainer.getLayoutBounds().getHeight();
         if (containerWidth <= point.getX() || containerHeight <= point.getY()) {
             throw new PositionOutOfBoundsException(
-                    "Tried to place MDI Window with ID " + internalWindow.getId() +
-                            " at a coordinate " + point.toString() +
-                            " that is beyond current size of the MDI container " +
-                            containerWidth + "px x " + containerHeight + "px."
+                "Tried to place MDI Window with ID " + internalWindow.getId() +
+                    " at a coordinate " + point.toString() +
+                    " that is beyond current size of the MDI container " +
+                    containerWidth + "px x " + containerHeight + "px."
             );
         }
 
         if ((containerWidth - point.getX() < 40) ||
-                (containerHeight - point.getY() < 40)) {
+            (containerHeight - point.getY() < 40)) {
             throw new PositionOutOfBoundsException(
-                    "Tried to place MDI Window with ID " + internalWindow.getId() +
-                            " at a coordinate " + point.toString() +
-                            " that is too close to the edge of the parent of size " +
-                            containerWidth + "px x " + containerHeight + "px " +
-                            " for user to comfortably grab the title bar with the mouse."
+                "Tried to place MDI Window with ID " + internalWindow.getId() +
+                    " at a coordinate " + point.toString() +
+                    " that is too close to the edge of the parent of size " +
+                    containerWidth + "px x " + containerHeight + "px " +
+                    " for user to comfortably grab the title bar with the mouse."
             );
         }
 
@@ -340,25 +294,19 @@ public class DesktopPane extends VBox {
     }
 
     public void centerMdiWindow(InternalWindow internalWindow) {
-        double w = getPaneMDIContainer().getLayoutBounds().getWidth();
-        double h = getPaneMDIContainer().getLayoutBounds().getHeight();
+        double w = getInternalWindowContainer().getLayoutBounds().getWidth();
+        double h = getInternalWindowContainer().getLayoutBounds().getHeight();
 
         Platform.runLater(() -> {
             double windowsWidth = internalWindow.getLayoutBounds().getWidth();
             double windowsHeight = internalWindow.getLayoutBounds().getHeight();
 
             Point2D centerCoordinate = new Point2D(
-                    (int) (w / 2) - (int) (windowsWidth / 2),
-                    (int) (h / 2) - (int) (windowsHeight / 2)
+                (int) (w / 2) - (int) (windowsWidth / 2),
+                (int) (h / 2) - (int) (windowsHeight / 2)
             );
             this.placeMdiWindow(internalWindow, centerCoordinate);
         });
-    }
-
-    public enum Theme {
-
-        DEFAULT,
-        DARK,
     }
 
     public static InternalWindow resolveInternalWindow(Node node) {

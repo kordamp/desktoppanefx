@@ -57,10 +57,6 @@ public class MyContentController implements Initializable {
     private Button btnRotate;
     @FXML
     private Hyperlink link;
-    @FXML
-    private Button btnDarkTheme;
-    @FXML
-    private Button btnDefaultTheme;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -78,21 +74,7 @@ public class MyContentController implements Initializable {
         btnAlignBOTTOM_CENTERHandler();
         btnAlignTOP_CENTERHandler();
         btnRotateHandler();
-        btnDarkThemeHandler();
-        btnDefaultThemeHandler();
         linkHandler();
-    }
-
-    private void btnDefaultThemeHandler() {
-        btnDefaultTheme.setOnAction(event -> {
-            DesktopPane.setTheme(DesktopPane.Theme.DEFAULT, mainPane.getScene());
-        });
-    }
-
-    private void btnDarkThemeHandler() {
-        btnDarkTheme.setOnAction(event -> {
-            DesktopPane.setTheme(DesktopPane.Theme.DARK, mainPane.getScene());
-        });
     }
 
     private void btnAlignTOP_CENTERHandler() {

@@ -26,7 +26,7 @@ public class Sampler extends Application {
         AnchorPane mainPane = new AnchorPane();
         mainPane.setPrefSize(800, 600);
         //Creat MDI Canvas Container
-        DesktopPane mdiCanvas = new DesktopPane(DesktopPane.Theme.DEFAULT);
+        DesktopPane mdiCanvas = new DesktopPane();
         //Fit it to the main Pane
         AnchorPane.setBottomAnchor(mdiCanvas, 0d);
         AnchorPane.setLeftAnchor(mdiCanvas, 0d);

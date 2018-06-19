@@ -30,23 +30,22 @@ import java.io.InputStream;
 /**
  * @author Lincoln Minto
  */
-public class MDIIcon extends Button {
-
+public class TaskBarIcon extends Button {
     private Button btnClose;
     private Label lblName;
-    private DesktopPane desktopPane;
+    private final DesktopPane desktopPane;
     final String cssDefault = "-fx-border-color:blue;" + "-fx-border-width: 1;"
             + "-fx-spacing:5.0;" + "-fx-alignment:center-left ";
 
     /**
      * *************************** CONSTRUCTOR
      */
-    public MDIIcon(ImageView imgLogo, DesktopPane desktopPane, String name) throws Exception {
+    public TaskBarIcon(ImageView imgLogo, DesktopPane desktopPane, String name) throws Exception {
         super();
         HBox hBox = new HBox();
         hBox.setStyle("-fx-alignment:center-left");
 
-        getStyleClass().add("taskBarIcon");
+        getStyleClass().add("taskbar-icon");
 //        styleProperty().bind(StylesCSS.taskBarIconStyleProperty);
 
         //setStyle(cssDefault);
@@ -67,10 +66,7 @@ public class MDIIcon extends Button {
         shadowCloseBtn.setWidth(10d);
         btnClose.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> btnClose.setEffect(shadowCloseBtn));
 //Removing the shadow when the mouse cursor is off
-        btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
-            btnClose.setEffect(null);
-            System.out.println("Height:" + getParent().getLayoutBounds().getHeight());
-        });
+        btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> btnClose.setEffect(null));
         btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, handleClose);
         hBox.getChildren().addAll(imgLogo == null ? new ImageView() : new ImageView(imgLogo.getImage()), lblName, btnClose);
         setGraphic(hBox);
@@ -84,7 +80,7 @@ public class MDIIcon extends Button {
     }
 
     /**
-     * ******************************** BUTTON_HANDLERES
+     * ******************************** BUTTON_HANDLERS
      */
     private EventHandler<MouseEvent> handleMaximize = new EventHandler<MouseEvent>() {
         @Override
@@ -105,13 +101,13 @@ public class MDIIcon extends Button {
     private void removeMDIWindow() {
         InternalWindow win = desktopPane.getItemFromMDIContainer(getId());
         if (win != null) {
-            desktopPane.getPaneMDIContainer().getChildren().remove(win);
+            desktopPane.getInternalWindowContainer().getChildren().remove(win);
         }
 
     }
 
     private void removeIcon() {
-        MDIIcon icon = desktopPane.getItemFromToolBar(getId());
+        TaskBarIcon icon = desktopPane.getItemFromToolBar(getId());
         if (icon != null) {
             desktopPane.getTbWindows().getChildren().remove(icon);
         }

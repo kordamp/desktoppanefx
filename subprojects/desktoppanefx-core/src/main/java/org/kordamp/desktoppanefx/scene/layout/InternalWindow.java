@@ -48,7 +48,6 @@ import java.util.logging.Logger;
  * @author Lincoln Minto
  */
 public class InternalWindow extends BorderPane {
-
     private double mousex = 0;
     private double mousey = 0;
     private double x = 0;
@@ -60,7 +59,6 @@ public class InternalWindow extends BorderPane {
     private boolean isMaximized = false;
     private BooleanProperty isClosed = new SimpleBooleanProperty(false);
     private InternalWindow.ResizeMode resizeMode;
-    private InternalWindow.AlignPosition alignPosition;
     private boolean RESIZE_TOP;
     private boolean RESIZE_LEFT;
     private boolean RESIZE_BOTTOM;
@@ -69,16 +67,10 @@ public class InternalWindow extends BorderPane {
     private double previousHeightToResize;
     private ImageView imgLogo;
     private AnchorPane mdiContent;
-    private AnchorPane loadingScreen;
-    private HBox loadingScreenHBox;
-    Label lblTitle;
+    private Label lblTitle;
     private boolean disableResize = false;
-    double lastLeftAnchor;
-    double lastRightAnchor;
-    double lastTopAnchor;
-    double lastBottomAnchor;
-    double lastY;
-    double lastX;
+    private double lastY;
+    private double lastX;
     private String windowsTitle;
 
     /**
@@ -128,7 +120,7 @@ public class InternalWindow extends BorderPane {
         bringToFrontListener();
 
         this.setPrefSize(200, 200);
-        getStyleClass().add("mdiWindow");
+        getStyleClass().add("internal-window");
 //        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
 
         this.setTop(makeTitlePane(title));
@@ -148,7 +140,7 @@ public class InternalWindow extends BorderPane {
         // HEADER:
         AnchorPane paneTitle = new AnchorPane();
         paneTitle.setPrefHeight(32);
-        paneTitle.getStyleClass().add("mdiWindowTitleBar");
+        paneTitle.getStyleClass().add("internal-window-titlebar");
 //        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
         // TITLE:
         paneTitle.getChildren().add(makeTitle(title));
@@ -157,19 +149,19 @@ public class InternalWindow extends BorderPane {
         // Read from an input stream
 
         btnClose = new Button("", getImageFromAssets("close.png"));
-        btnClose.getStyleClass().add("controlButtons");
+        btnClose.getStyleClass().add("internal-window-titlebar-button");
 //        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnClose.setOnMouseClicked((MouseEvent t) -> {
             closeMdiWindow();
         });
         btnMinimize = new Button("", getImageFromAssets("minimize.png"));
-        btnMinimize.getStyleClass().add("controlButtons");
+        btnMinimize.getStyleClass().add("internal-window-titlebar-button");
 //        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnMinimize.setOnMouseClicked((MouseEvent t) -> {
             minimizeMdiWindow();
         });
         btnMaximize = new Button("", getImageFromAssets("maximize.png"));
-        btnMaximize.getStyleClass().add("controlButtons");
+        btnMaximize.getStyleClass().add("internal-window-titlebar-button");
 //        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         btnMaximize.setOnMouseClicked((MouseEvent t) -> {
             maximizeRestoreMdiWindow();
@@ -236,7 +228,7 @@ public class InternalWindow extends BorderPane {
         hbLeft.setSpacing(10d);
         ImageView imvLogo = imgLogo != null ? imgLogo : new ImageView();
         lblTitle = new Label(title);
-        lblTitle.getStyleClass().add("titleText");
+        lblTitle.getStyleClass().add("internal-window-titlebar-title");
 //        lblTitle.setStyle("-fx-font-weight: bold;");
         //lblTitle.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
 
@@ -424,10 +416,10 @@ public class InternalWindow extends BorderPane {
         st.setOnFinished((ActionEvent t) -> {
 
             DesktopPane desktopPane = (DesktopPane) this.getParent().getParent();
-            for (int i = 0; i < desktopPane.getPaneMDIContainer().getChildren().size(); i++) {
-                InternalWindow window = (InternalWindow) desktopPane.getPaneMDIContainer().getChildren().get(i);
+            for (int i = 0; i < desktopPane.getInternalWindowContainer().getChildren().size(); i++) {
+                InternalWindow window = (InternalWindow) desktopPane.getInternalWindowContainer().getChildren().get(i);
                 if (window.getId().equals(borderPane.getId())) {
-                    desktopPane.getPaneMDIContainer().getChildren().remove(i);
+                    desktopPane.getInternalWindowContainer().getChildren().remove(i);
                 }
             }
             isClosed.setValue(true);
@@ -435,7 +427,6 @@ public class InternalWindow extends BorderPane {
     }
 
     private void bringToFrontListener() {
-
         this.setOnMouseClicked((MouseEvent t) -> {
             borderPane.toFront();
         });
