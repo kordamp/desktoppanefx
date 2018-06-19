@@ -1,0 +1,111 @@
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+jar {
+    manifest {
+        attributes(
+            'Built-By': buildBy,
+            'Created-By': buildCreatedBy,
+            'Build-Date': buildDate,
+            'Build-Time': buildTime,
+            'Build-Revision': buildRevision,
+            'Specification-Title': project.name,
+            'Specification-Version': project.version,
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.version,
+            'Automatic-Module-Name': 'org.kordamp.' + project.name.replaceAll('-', '.') - '.pack'
+        )
+    }
+    metaInf {
+        from(rootProject.files('.')) {
+            include 'LICENSE*'
+        }
+    }
+}
+
+def pomConfig = {
+    packaging 'jar'
+    name project.name
+    description project.project_description
+    url project.project_url
+    inceptionYear '2015'
+    licenses {
+        license([:]) {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    scm {
+        url project.project_scm
+    }
+    developers {
+        [
+            aalmiray: 'Andres Almiray',
+            lincolnminto: 'Lincoln Minto'
+        ].each { devId, devName ->
+            developer {
+                id devId
+                name devName
+                roles {
+                    role 'Developer'
+                }
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenCustom(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml {
+                // all dependencies should use the default scope (compile) but
+                // Gradle insists in using runtime as default
+                asNode().dependencies.dependency.each { dep ->
+                    if (dep.scope.text() == 'runtime') {
+                        dep.remove(dep.scope)
+                    }
+                }
+                asNode().children().last() + pomConfig
+                asNode().appendNode('description', project.project_description)
+            }
+        }
+    }
+}
+
+if (!project.hasProperty('bintrayUsername')) ext.bintrayUsername = ''
+if (!project.hasProperty('bintrayApiKey')) ext.bintrayApiKey = ''
+if (!project.hasProperty('mavenUsername')) ext.mavenUsername = ''
+if (!project.hasProperty('mavenPassword')) ext.mavenPassword = ''
+
+bintray {
+    user = project.bintrayUsername
+    key = project.bintrayApiKey
+    publications = ['mavenCustom']
+    pkg {
+        repo = project.project_bintray_repo
+        userOrg = project.project_bintray_org
+        name = rootProject.name
+        desc = rootProject.project_description
+        licenses = ['Apache-2.0']
+        labels = ['javafx'^]
+        websiteUrl = project.project_url
+        issueTrackerUrl = project.project_issues
+        vcsUrl = project.project_scm
+        publicDownloadNumbers = true
+        githubRepo = 'aalmiray/desktoppanefx'
+        version {
+            name = project.version
+            vcsTag = "desktoppanefx-${project.version}"
+            mavenCentralSync {
+                sync = true
+                user = project.mavenUsername
+                password = project.mavenPassword
+            }
+        }
+    }
+}

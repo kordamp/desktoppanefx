@@ -1,0 +1,7 @@
+apply plugin: 'application'
+
+mainClassName = 'org.kordamp.desktoppanefx.Sampler'
+
+dependencies {
+    compile project(':desktoppanefx-core')
+}

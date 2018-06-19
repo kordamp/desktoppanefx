@@ -1,0 +1,153 @@
+import java.text.SimpleDateFormat
+
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+
+    dependencies {
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.2'
+        classpath 'org.ajoberstar:gradle-git-publish:0.3.2'
+        classpath 'org.kordamp.gradle:stats-gradle-plugin:0.2.2'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.19.0'
+        classpath 'net.nemerosa:versioning:2.7.1'
+    }
+}
+
+apply plugin: 'org.ajoberstar.git-publish'
+apply plugin: 'net.nemerosa.versioning'
+
+Date buildTimeAndDate = new Date()
+ext {
+    buildBy = System.properties['user.name']
+    buildDate = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
+    buildTime = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
+    buildRevision = versioning.info.commit
+    buildCreatedBy = "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString()
+}
+
+allprojects {
+    apply plugin: 'base'
+    apply plugin: 'idea'
+    apply plugin: 'com.github.ben-manes.versions'
+
+    repositories {
+        jcenter()
+    }
+
+    if (JavaVersion.current().isJava8Compatible()) {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+idea {
+    project {
+        jdkName '1.8'
+        languageLevel '1.8'
+
+        ipr {
+            withXml { provider ->
+                def node = provider.asNode()
+                node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
+
+                def compilerConfiguration = node.component.find { it.'@name' == 'CompilerConfiguration' }
+                compilerConfiguration.remove(compilerConfiguration.annotationProcessing)
+                compilerConfiguration.append(new XmlParser().parseText('''
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true">
+        <processorPath useClasspath="true" />
+      </profile>
+    </annotationProcessing>'''))
+            }
+        }
+    }
+}
+
+subprojects { subproj ->
+    apply plugin: 'java'
+    apply plugin: 'com.github.kt3k.coveralls'
+    apply plugin: 'org.kordamp.gradle.stats'
+    apply from: rootProject.file('gradle/code-coverage.gradle')
+    apply from: rootProject.file('gradle/code-quality.gradle')
+
+    subproj.tasks.withType(JavaCompile) {
+        sourceCompatibility = subproj.sourceCompatibility
+        targetCompatibility = subproj.targetCompatibility
+    }
+
+    repositories {
+        jcenter()
+    }
+
+    if (subproj.name.contains('ikonli')) {
+        apply from: rootProject.file('gradle/publishing.gradle')
+
+        javadoc {
+            excludes = ['**/*.html', 'META-INF/**']
+
+            options.use         = true
+            options.splitIndex  = true
+            options.encoding    = 'UTF-8'
+            options.author      = true
+            options.version     = true
+            options.windowTitle = "$project.name $project.version API"
+            options.docTitle    = "$project.name $project.version API"
+            options.links       = ['http://docs.oracle.com/javase/8/docs/api/',
+                                   'http://docs.oracle.com/javase/8/javafx/api/']
+        }
+
+        task sourcesJar(type: Jar) {
+            group 'Build'
+            description 'An archive of the source code'
+            classifier 'sources'
+            from sourceSets.main.allSource
+        }
+
+        task javadocJar(type: Jar) {
+            group 'Build'
+            description 'An archive of the javadoc'
+            classifier 'javadoc'
+            from javadoc.destinationDir
+        }
+
+        jar.finalizedBy sourcesJar
+        jar.finalizedBy javadocJar
+
+        artifacts {
+            sourcesJar
+            javadocJar
+        }
+
+        dependencies {
+            testCompile 'junit:junit:4.12'
+        }
+    }
+}
+
+evaluationDependsOnChildren()
+
+if (!project.hasProperty('githubUsername')) ext.githubUsername = ''
+if (!project.hasProperty('githubPassword')) ext.githubPassword = ''
+
+gitPublish {
+    repoUri = project.project_scm
+    branch = 'gh-pages'
+    contents {
+        from project(':guide').guide.outputs.files
+    }
+    commitMessage = "Publish guide for $version"
+
+/*
+    credentials {
+        username = githubUsername
+        password = githubPassword
+    }
+*/
+}
+
+gitPublishCommit.dependsOn(project(':guide').guide)

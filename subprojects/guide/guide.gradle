@@ -1,0 +1,151 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'http://dl.bintray.com/content/bmuschko/maven' }
+        maven { url 'http://dl.bintray.com/content/bmuschko/gradle-plugins' }
+    }
+
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.7'
+        classpath 'com.bmuschko:gradle-java2html-plugin:2.0'
+    }
+}
+
+apply plugin: 'org.asciidoctor.convert'
+apply plugin: 'com.bmuschko.java2html'
+
+ext.childProjects = [
+        ':desktoppanefx-core'
+]
+
+ext.childProjects.each { evaluationDependsOn it }
+
+asciidoctorj {
+    version = '1.5.6'
+}
+
+dependencies {
+    java2html 'de.java2html:java2html:5.0'
+}
+
+task copyDocs(type: Copy) {
+    destinationDir = "${buildDir}/sources" as File
+    project.ext.childProjects.each { projectName ->
+        from(project(projectName).sourceSets.main.allSource) {
+            include '**/*.java'
+            include '**/*.html'
+        }
+    }
+}
+
+task apiDocs(type: Javadoc, dependsOn: copyDocs) {
+    source = copyDocs.destinationDir
+    destinationDir = file("${buildDir}/api")
+    title = "DesktopPaneFX ${project.version}"
+    classpath = project.ext.childProjects.collect { projectName ->
+        [project(projectName).sourceSets.main.output,
+         project(projectName).configurations.compile,
+         project(projectName).configurations.compileOnly]
+    }.flatten().sum() as FileCollection
+
+    excludes = ['**/*.html', 'META-INF/**']
+
+    options.use = true
+    options.splitIndex = true
+    options.encoding = 'UTF-8'
+    options.author = true
+    options.version = true
+    options.source = project.sourceCompatibility
+    options.overview = file('src/javadoc/overview.html')
+    options.windowTitle = "DesktopPaneFX ${project.version}"
+    options.docTitle = "DesktopPaneFX ${project.version}"
+    options.footer = project.javadocFooter
+    options.links 'https://www.slf4j.org/apidocs/'
+    options.links 'https://junit.org/junit4/javadoc/latest/'
+    options.links 'https://docs.oracle.com/javase/8/docs/api/'
+    options.links 'https://docs.oracle.com/javase/8/javafx/api/'
+
+    doLast { task ->
+        copy {
+            into task.destinationDir
+            from file('src/javadoc/resources/css/stylesheet.css')
+        }
+    }
+}
+
+task generateJava2html {
+    dependsOn apiDocs
+    dependsOn "java2htmlGenerateOverview"
+    dependsOn java2htmlConvertCode
+}
+
+task javadocJar(type: Jar, dependsOn: apiDocs, overwrite: true) {
+    archiveName = "desktoppanefx-${version}-javadoc.jar"
+    destinationDir = "${buildDir}/assemble/jars" as File
+    from apiDocs.destinationDir
+}
+
+task sourceHtmlJar(type: Jar, dependsOn: java2html) {
+    archiveName = "desktoppanefx-${version}-sources-html.jar"
+    destinationDir = "${buildDir}/assemble/jars" as File
+    from java2htmlConvertCode.destDir
+}
+
+task docsJar(dependsOn: [javadocJar, sourceHtmlJar]) {}
+
+java2html {
+    conversion {
+        srcDirs = files(copyDocs.destinationDir)
+        tabs = 4
+        style = 'kawa'
+        addLineAnchors = true
+        showFileName = true
+        useShortFileName = true
+        overwrite = true
+        showDefaultTitle = true
+    }
+
+    overview {
+        windowTitle = "DesktopPaneFX ${project.version}"
+        docTitle = "DesktopPaneFX ${project.version}"
+        docDescription = "DesktopPaneFX ${project.version}"
+        stylesheet = file('src/javadoc/resources/css/stylesheet.css')
+    }
+}
+
+asciidoctor {
+    sourceDir = file('src/asciidoc')
+    attributes = [
+            toc                    : 'left',
+            doctype                : 'book',
+            icons                  : 'font',
+            encoding               : 'utf-8',
+            sectlink               : true,
+            sectanchors            : true,
+            numbered               : true,
+            linkattrs              : true,
+            imagesdir              : 'images',
+            linkcss                : true,
+            stylesheet             : 'css/style.css',
+            'source-highlighter'   : 'coderay',
+            'coderay-linenums-mode': 'table',
+            'project-title'        : project.project_description,
+            'project-author'       : 'Andres Almiray',
+            'project-url'          : project.project_url,
+            'project-vcs'          : project.project_scm,
+            'project-issue-tracker': project.project_issues,
+            'project-group'        : project.group
+    ]
+}
+
+task guide(type: Copy, dependsOn: [apiDocs, generateJava2html, asciidoctor]) {
+    destinationDir = "${buildDir}/guide" as File
+    from(apiDocs.destinationDir) { into 'api' }
+    from(java2htmlConvertCode.destDir) { into 'api-src' }
+    from("${asciidoctor.outputDir}/html5")
+}
+
+task guideZip(type: Zip, dependsOn: guide) {
+    baseName = "desktoppanefx-guide"
+    from guide.destinationDir
+}
