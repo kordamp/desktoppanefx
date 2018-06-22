@@ -23,9 +23,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -38,15 +36,12 @@ import java.util.logging.Logger;
  * @author Andres Almiray
  */
 public class DesktopPane extends VBox {
+    private final DesktopPane desktopPane = this;
     private final AnchorPane internalWindowContainer;
-    private final ScrollPane taskBar;
-    private HBox tbWindows;
-    private DesktopPane desktopPane = this;
-    private final static int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
-    private final static int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 10;
+    private final TaskBar taskBar;
 
     /**
-     * *********** CONSTRUICTOR *************
+     * *********** CONSTRUCTOR *************
      */
     public DesktopPane() {
         super();
@@ -55,37 +50,10 @@ public class DesktopPane extends VBox {
 
         internalWindowContainer = new AnchorPane();
         internalWindowContainer.getStyleClass().add("desktoppane");
-        tbWindows = new HBox();
-        tbWindows.setSpacing(3);
-        tbWindows.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-        tbWindows.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-        tbWindows.setAlignment(Pos.CENTER_LEFT);
         setVgrow(internalWindowContainer, Priority.ALWAYS);
-        taskBar = new ScrollPane(tbWindows);
-        Platform.runLater(() -> {
-            Node viewport = taskBar.lookup(".viewport");
-            viewport.setStyle(" -fx-background-color: transparent; ");
-        });
-        taskBar.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-        taskBar.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-        taskBar.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        taskBar.setVmax(0);
-        taskBar.getStyleClass().add("desktoppane-taskbar");
 
-        tbWindows.widthProperty().addListener((o, v, n) -> {
-            Platform.runLater(() -> {
-                if (n.doubleValue() <= taskBar.getWidth()) {
-                    taskBar.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-                    taskBar.setPrefHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-                    taskBar.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
-                } else {
-                    taskBar.setMaxHeight(TASKBAR_HEIGHT_WITH_SCROLL);
-                    taskBar.setPrefHeight(TASKBAR_HEIGHT_WITH_SCROLL);
-                    taskBar.setMinHeight(TASKBAR_HEIGHT_WITH_SCROLL);
-                }
-            });
-        });
-        getChildren().addAll(internalWindowContainer, taskBar);
+        taskBar = new TaskBar();
+        getChildren().addAll(internalWindowContainer, taskBar.getTaskBar());
 
         addEventHandler(InternalWindowEvent.EVENT_CLOSED, mdiCloseHandler);
         addEventHandler(InternalWindowEvent.EVENT_MINIMIZED, mdiMinimizedHandler);
@@ -98,8 +66,8 @@ public class DesktopPane extends VBox {
         return internalWindowContainer;
     }
 
-    public Pane getTbWindows() {
-        return tbWindows;
+    public TaskBar getTaskBar() {
+        return taskBar;
     }
 
     /**
@@ -115,7 +83,7 @@ public class DesktopPane extends VBox {
             internalWindowContainer.getChildren().remove(mdi);
         }
         if (iconBar != null) {
-            tbWindows.getChildren().remove(iconBar);
+            taskBar.removeTaskNode(iconBar);
         }
 
         return this;
@@ -172,7 +140,7 @@ public class DesktopPane extends VBox {
 
     private void restoreExisting(InternalWindow internalWindow) {
         if (getItemFromToolBar(internalWindow.getId()) != null) {
-            tbWindows.getChildren().remove(getItemFromToolBar(internalWindow.getId()));
+            taskBar.removeTaskNode(getItemFromToolBar(internalWindow.getId()));
         }
         for (int i = 0; i < internalWindowContainer.getChildren().size(); i++) {
             Node node = internalWindowContainer.getChildren().get(i);
@@ -190,7 +158,7 @@ public class DesktopPane extends VBox {
         @Override
         public void handle(InternalWindowEvent event) {
             InternalWindow win = (InternalWindow) event.getTarget();
-            tbWindows.getChildren().remove(getItemFromToolBar(win.getId()));
+            taskBar.removeTaskNode(getItemFromToolBar(win.getId()));
             win = null;
         }
     };
@@ -204,7 +172,7 @@ public class DesktopPane extends VBox {
                     TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), desktopPane, win.getWindowsTitle());
                     icon.setId(win.getId());
                     icon.getBtnClose().disableProperty().bind(win.disableCloseProperty());
-                    tbWindows.getChildren().add(icon);
+                    taskBar.addTaskNode(icon);
                 } catch (Exception ex) {
                     Logger.getLogger(DesktopPane.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -217,7 +185,7 @@ public class DesktopPane extends VBox {
      * ***************** UTILITIES******************************************
      */
     public TaskBarIcon getItemFromToolBar(String id) {
-        for (Node node : tbWindows.getChildren()) {
+        for (Node node : taskBar.getTaskNodes()) {
             if (node instanceof TaskBarIcon) {
                 TaskBarIcon icon = (TaskBarIcon) node;
                 //String key = icon.getLblName().getText();

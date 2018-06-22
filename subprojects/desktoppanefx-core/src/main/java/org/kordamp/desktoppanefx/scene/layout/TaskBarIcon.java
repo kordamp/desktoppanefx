@@ -97,6 +97,7 @@ public class TaskBarIcon extends Button {
             }
         }
     };
+
     private EventHandler<MouseEvent> handleClose = event -> {
         removeInternalWindow();
         removeIcon();
@@ -107,13 +108,12 @@ public class TaskBarIcon extends Button {
         if (win != null) {
             desktopPane.getInternalWindowContainer().getChildren().remove(win);
         }
-
     }
 
     private void removeIcon() {
         TaskBarIcon icon = desktopPane.getItemFromToolBar(getId());
         if (icon != null) {
-            desktopPane.getTbWindows().getChildren().remove(icon);
+            desktopPane.getTaskBar().removeTaskNode(icon);
         }
     }
 
