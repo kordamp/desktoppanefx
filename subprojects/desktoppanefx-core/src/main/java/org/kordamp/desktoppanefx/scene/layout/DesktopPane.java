@@ -21,12 +21,10 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,8 +33,7 @@ import java.util.logging.Logger;
  * @author Lincoln Minto
  * @author Andres Almiray
  */
-public class DesktopPane extends VBox {
-    private final DesktopPane desktopPane = this;
+public class DesktopPane extends BorderPane {
     private final AnchorPane internalWindowContainer;
     private final TaskBar taskBar;
 
@@ -46,17 +43,27 @@ public class DesktopPane extends VBox {
     public DesktopPane() {
         super();
         getStylesheets().add("/org/kordamp/desktoppanefx/scene/layout/default-desktoppane-stylesheet.css");
-        setAlignment(Pos.TOP_LEFT);
 
         internalWindowContainer = new AnchorPane();
         internalWindowContainer.getStyleClass().add("desktoppane");
-        setVgrow(internalWindowContainer, Priority.ALWAYS);
 
         taskBar = new TaskBar();
-        getChildren().addAll(internalWindowContainer, taskBar.getTaskBar());
+        setCenter(internalWindowContainer);
+        setBottom(taskBar.getTaskBar());
 
         addEventHandler(InternalWindowEvent.EVENT_CLOSED, mdiCloseHandler);
         addEventHandler(InternalWindowEvent.EVENT_MINIMIZED, mdiMinimizedHandler);
+
+        taskBar.positionProperty().addListener((v, o, position) -> {
+            getChildren().remove(taskBar.getTaskBar());
+            switch (position) {
+                case TOP:
+                    setTop(taskBar.getTaskBar());
+                    break;
+                case BOTTOM:
+                    setBottom(taskBar.getTaskBar());
+            }
+        });
     }
 
     /**
@@ -154,7 +161,7 @@ public class DesktopPane extends VBox {
     /**
      * *****************************MDI_EVENT_HANDLERS**************************
      */
-    public EventHandler<InternalWindowEvent> mdiCloseHandler = new EventHandler<InternalWindowEvent>() {
+    private final EventHandler<InternalWindowEvent> mdiCloseHandler = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
             InternalWindow win = (InternalWindow) event.getTarget();
@@ -162,14 +169,15 @@ public class DesktopPane extends VBox {
             win = null;
         }
     };
-    public EventHandler<InternalWindowEvent> mdiMinimizedHandler = new EventHandler<InternalWindowEvent>() {
+
+    private final EventHandler<InternalWindowEvent> mdiMinimizedHandler = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
             InternalWindow win = (InternalWindow) event.getTarget();
             String id = win.getId();
             if (getItemFromToolBar(id) == null) {
                 try {
-                    TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), desktopPane, win.getWindowsTitle());
+                    TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), DesktopPane.this, win.getWindowsTitle());
                     icon.setId(win.getId());
                     icon.getBtnClose().disableProperty().bind(win.disableCloseProperty());
                     taskBar.addTaskNode(icon);

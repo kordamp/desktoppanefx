@@ -16,6 +16,8 @@
 package org.kordamp.desktoppanefx.scene.layout;
 
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -27,9 +29,16 @@ import javafx.scene.layout.HBox;
  */
 public class TaskBar {
     private final static int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
-    private final static int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 10;
+    private final static int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 20;
     private final ScrollPane taskBar;
     private final HBox taskBarContentPane;
+
+    private final ObjectProperty<Position> position = new SimpleObjectProperty<>(this, "position", Position.BOTTOM);
+
+    public enum Position {
+        TOP,
+        BOTTOM
+    }
 
     public TaskBar() {
         taskBarContentPane = new HBox();
@@ -60,12 +69,8 @@ public class TaskBar {
         });
     }
 
-    ScrollPane getTaskBar() {
+    public ScrollPane getTaskBar() {
         return taskBar;
-    }
-
-    public HBox getTaskBarContentPane() {
-        return taskBarContentPane;
     }
 
     public void addTaskNode(Node node) {
@@ -78,5 +83,17 @@ public class TaskBar {
 
     public ObservableList<Node> getTaskNodes() {
         return taskBarContentPane.getChildren();
+    }
+
+    public ObjectProperty<Position> positionProperty() {
+        return position;
+    }
+
+    public Position getPosition() {
+        return position.get();
+    }
+
+    public void setPosition(Position position) {
+        this.position.set(position);
     }
 }
