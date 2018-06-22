@@ -56,7 +56,7 @@ task apiDocs(type: Javadoc, dependsOn: copyDocs) {
     options.author = true
     options.version = true
     options.source = project.sourceCompatibility
-    options.overview = file('src/javadoc/overview.html')
+    // options.overview = file('src/javadoc/overview.html')
     options.windowTitle = "DesktopPaneFX ${project.version}"
     options.docTitle = "DesktopPaneFX ${project.version}"
     options.footer = project.javadocFooter
@@ -65,12 +65,14 @@ task apiDocs(type: Javadoc, dependsOn: copyDocs) {
     options.links 'https://docs.oracle.com/javase/8/docs/api/'
     options.links 'https://docs.oracle.com/javase/8/javafx/api/'
 
+    /*
     doLast { task ->
         copy {
             into task.destinationDir
             from file('src/javadoc/resources/css/stylesheet.css')
         }
     }
+    */
 }
 
 task generateJava2html {
@@ -109,7 +111,7 @@ java2html {
         windowTitle = "DesktopPaneFX ${project.version}"
         docTitle = "DesktopPaneFX ${project.version}"
         docDescription = "DesktopPaneFX ${project.version}"
-        stylesheet = file('src/javadoc/resources/css/stylesheet.css')
+        // stylesheet = file('src/javadoc/resources/css/stylesheet.css')
     }
 }
 

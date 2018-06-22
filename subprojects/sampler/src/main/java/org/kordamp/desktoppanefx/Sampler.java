@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015-2018 Andres Almiray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.kordamp.desktoppanefx;
 
 import javafx.application.Application;
@@ -6,14 +21,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import org.kordamp.desktoppanefx.scene.layout.DesktopPane;
 import org.kordamp.desktoppanefx.scene.layout.InternalWindow;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 /**
- * Created by brisatc171.minto on 12/11/2015.
+ * @author Lincoln Minto
  */
 public class Sampler extends Application {
     int count = 0;
@@ -26,36 +41,35 @@ public class Sampler extends Application {
         AnchorPane mainPane = new AnchorPane();
         mainPane.setPrefSize(800, 600);
         //Creat MDI Canvas Container
-        DesktopPane mdiCanvas = new DesktopPane();
+        DesktopPane desktopPane = new DesktopPane();
         //Fit it to the main Pane
-        AnchorPane.setBottomAnchor(mdiCanvas, 0d);
-        AnchorPane.setLeftAnchor(mdiCanvas, 0d);
-        AnchorPane.setTopAnchor(mdiCanvas, 25d);//Button place
-        AnchorPane.setRightAnchor(mdiCanvas, 0d);
+        AnchorPane.setBottomAnchor(desktopPane, 0d);
+        AnchorPane.setLeftAnchor(desktopPane, 0d);
+        AnchorPane.setTopAnchor(desktopPane, 25d);//Button place
+        AnchorPane.setRightAnchor(desktopPane, 0d);
         //Put the container Into the main pane
-        mainPane.getChildren().add(mdiCanvas);
+        mainPane.getChildren().add(desktopPane);
         //Create a 'New MDI Window' Button
-        Button btnDefaultMdi = new Button("New Window");
+        Button newWindowButton = new Button("New Window");
         //set the button action
 
-        btnDefaultMdi.setOnAction(event -> {
+        newWindowButton.setOnAction(event -> {
             Node content = null;
             try {
                 content = FXMLLoader.load(getClass().getResource("/MyContent.fxml"));
             } catch (Exception e) {
             }
             count++;
-            //Create a Default MDI Withou Icon
-            InternalWindow mdiWindow = new InternalWindow("UniqueID" + count,
-                    new ImageView("/assets/WindowIcon.png"),
+            //Create a new window
+            InternalWindow internalWindow = new InternalWindow("UniqueID" + count,
+                    new FontIcon("mdi-application:20:RED"),
                     "Title " + count,
                     content);
-            //Set MDI Size
             //Add it to the container
-            mdiCanvas.addMDIWindow(mdiWindow);
+            desktopPane.addInternalWindow(internalWindow);
         });
         //Put it into the main pane
-        mainPane.getChildren().add(btnDefaultMdi);
+        mainPane.getChildren().add(newWindowButton);
 
         primaryStage.setScene(new Scene(mainPane));
         primaryStage.show();

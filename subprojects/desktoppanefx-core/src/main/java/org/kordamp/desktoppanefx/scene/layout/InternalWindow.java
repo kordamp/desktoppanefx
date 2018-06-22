@@ -23,28 +23,25 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
+import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
-
-import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Lincoln Minto
@@ -57,9 +54,10 @@ public class InternalWindow extends BorderPane {
     private Button btnClose;
     private Button btnMinimize;
     private Button btnMaximize;
+    private Button btnDetach;
     private BorderPane borderPane = this;
-    private boolean isMaximized = false;
-    private BooleanProperty isClosed = new SimpleBooleanProperty(false);
+    private boolean maximized = false;
+    private BooleanProperty closed = new SimpleBooleanProperty(false);
     private InternalWindow.ResizeMode resizeMode;
     private boolean RESIZE_TOP;
     private boolean RESIZE_LEFT;
@@ -67,152 +65,203 @@ public class InternalWindow extends BorderPane {
     private boolean RESIZE_RIGHT;
     private double previousWidthToResize;
     private double previousHeightToResize;
-    private ImageView imgLogo;
-    private AnchorPane mdiContent;
+    private Node icon;
+    private AnchorPane headerPane;
+    private Node content;
+    private Pane contentPane;
+    private Pane titlePane;
     private Label lblTitle;
     private boolean disableResize = false;
     private double lastY;
     private double lastX;
     private String windowsTitle;
+    private Stage detachedWindow;
+    private DesktopPane desktopPane;
 
-    /**
-     * @param logoImage
-     * @param title
-     * @param content
-     *
-     * @throws Exception
-     */
-    public InternalWindow(String mdiWindowID, ImageView logoImage, String title, Node content) {
-        init(mdiWindowID, logoImage, title, content);
+    private BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
+
+    private BooleanProperty minimizeVisible = new SimpleBooleanProperty(this, "minimizeVisible", true);
+    private BooleanProperty maximizeVisible = new SimpleBooleanProperty(this, "maximizeVisible", true);
+    private BooleanProperty closeVisible = new SimpleBooleanProperty(this, "closeVisible", true);
+    private BooleanProperty detachVisible = new SimpleBooleanProperty(this, "detachVisible", true);
+
+    private BooleanProperty disableMinimize = new SimpleBooleanProperty(this, "disableMinimize", false);
+    private BooleanProperty disableMaximize = new SimpleBooleanProperty(this, "disableMaximize", false);
+    private BooleanProperty disableClose = new SimpleBooleanProperty(this, "disableClose", false);
+    private BooleanProperty disableDetach = new SimpleBooleanProperty(this, "disableDetach", false);
+
+    public InternalWindow(String mdiWindowID, Node icon, String title, Node content) {
+        init(mdiWindowID, icon, title, content);
     }
 
-    /**
-     * @param logoImage
-     * @param title
-     * @param content
-     * @param disableResize
-     *
-     * @throws Exception
-     */
-    public InternalWindow(String mdiWindowID, ImageView logoImage, String title, Node content, boolean disableResize) {
+    public InternalWindow(String mdiWindowID, Node icon, String title, Node content, boolean disableResize) {
         this.disableResize = disableResize;
-        init(mdiWindowID, logoImage, title, content);
+        init(mdiWindowID, icon, title, content);
     }
 
-    /**
-     * @param logoImage
-     * @param title
-     * @param content
-     * @param disableResize
-     * @param maximize
-     *
-     * @throws Exception
-     */
-    public InternalWindow(String mdiWindowID, ImageView logoImage, String title, Node content, boolean disableResize, boolean maximize) {
+    public InternalWindow(String mdiWindowID, Node icon, String title, Node content, boolean disableResize, boolean maximize) {
         this.disableResize = disableResize;
-        init(mdiWindowID, logoImage, title, content);
+        init(mdiWindowID, icon, title, content);
         if (maximize) {
-            centerMdiWindow();
-            maximizeRestoreMdiWindow();
+            center();
+            maximizeOrRestoreWindow();
         }
     }
 
-    private void init(String mdiWindowID, ImageView logoImage, String title, Node content) {
-        this.setId(mdiWindowID);
-        this.windowsTitle = title;
-        imgLogo = logoImage;
+    public DesktopPane getDesktopPane() {
+        return desktopPane;
+    }
+
+    public void setDesktopPane(DesktopPane desktopPane) {
+        this.desktopPane = desktopPane;
+    }
+
+    public Node getIcon() {
+        return icon;
+    }
+
+    private void init(String mdiWindowID, Node icon, String title, Node content) {
+        setId(mdiWindowID);
+        this.icon = icon;
         moveListener();
         bringToFrontListener();
 
-        this.setPrefSize(200, 200);
+        setPrefSize(200, 200);
         getStyleClass().add("internal-window");
-        //        this.styleProperty().bind(StylesCSS.mdiStyleProperty);
-
-        this.setTop(makeTitlePane(title));
-        mdiContent = makeContentPane(content);
-        this.setCenter(mdiContent);
+        setTop(headerPane = makeHeader(windowsTitle = title));
+        setCenter(contentPane = makeContentPane(content));
     }
 
     public Node getContent() {
-        return ((AnchorPane) getCenter()).getChildren().get(0);
+        return content;
     }
 
-    public void setMdiTitle(String title) {
+    public void setContent(Node content) {
+        if (content != null) {
+            contentPane.getChildren().setAll(content);
+        } else {
+            contentPane.getChildren().clear();
+        }
+    }
+
+    public void setTitle(String title) {
         lblTitle.setText(title);
     }
 
-    private AnchorPane makeTitlePane(String title) {
+    public String getTitle() {
+        return lblTitle.getText();
+    }
+
+    private AnchorPane makeHeader(String title) {
         // HEADER:
-        AnchorPane paneTitle = new AnchorPane();
-        paneTitle.setPrefHeight(32);
-        paneTitle.getStyleClass().add("internal-window-titlebar");
-        //        paneTitle.styleProperty().bind(StylesCSS.mdiTitleBarStyleProperty);
-        // TITLE:
-        paneTitle.getChildren().add(makeTitle(title));
-        paneTitle.setPadding(new Insets(0, 11, 0, 0));
-        // BUTTONS:
-        // Read from an input stream
+        AnchorPane header = new AnchorPane();
+        header.setPrefHeight(32);
+        header.getStyleClass().add("internal-window-titlebar");
+
+        titlePane = makeTitlePane(title);
+        header.getChildren().add(titlePane);
+        header.setPadding(new Insets(0, 11, 0, 0));
+
+        btnDetach = new Button("", new FontIcon(resolveDetachIcon()));
+        detachedProperty().addListener((v, o, n) -> btnDetach.setGraphic(new FontIcon(resolveDetachIcon())));
+        btnDetach.getStyleClass().add("internal-window-titlebar-button");
+        btnDetach.visibleProperty().bind(detachVisible);
+        btnDetach.managedProperty().bind(detachVisible);
+        btnDetach.disableProperty().bind(disableDetach);
+        btnDetach.setOnMouseClicked((MouseEvent t) -> detachOrAttachWindow());
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
         btnClose.getStyleClass().add("internal-window-titlebar-button");
-        //        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
-        btnClose.setOnMouseClicked((MouseEvent t) -> closeMdiWindow());
+        btnClose.visibleProperty().bind(closeVisible);
+        btnClose.managedProperty().bind(closeVisible);
+        btnClose.disableProperty().bind(disableClose);
+        btnClose.setOnMouseClicked((MouseEvent t) -> closeWindow());
+
         btnMinimize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MINIMIZE));
         btnMinimize.getStyleClass().add("internal-window-titlebar-button");
-        //        btnMinimize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
-        btnMinimize.setOnMouseClicked((MouseEvent t) -> minimizeMdiWindow());
+        btnMinimize.visibleProperty().bind(minimizeVisible);
+        btnMinimize.managedProperty().bind(minimizeVisible);
+        btnMinimize.disableProperty().bind(disableMinimize);
+        btnMinimize.setOnMouseClicked((MouseEvent t) -> minimizeWindow());
+
         btnMaximize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
         btnMaximize.getStyleClass().add("internal-window-titlebar-button");
-        //        btnMaximize.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
-        btnMaximize.setOnMouseClicked((MouseEvent t) -> maximizeRestoreMdiWindow());
+        btnMaximize.visibleProperty().bind(maximizeVisible);
+        btnMaximize.managedProperty().bind(maximizeVisible);
+        btnMaximize.disableProperty().bind(disableMaximize);
+        btnMaximize.setOnMouseClicked((MouseEvent t) -> maximizeOrRestoreWindow());
+
         if (!disableResize) {
-            paneTitle.getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
+            // header.getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));
+            header.getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
             //double click on title bar
-            paneTitle.setOnMouseClicked((MouseEvent event) -> {
+            header.setOnMouseClicked((MouseEvent event) -> {
                 if (event.getClickCount() == 2) {
-                    maximizeRestoreMdiWindow();
+                    maximizeOrRestoreWindow();
                 }
             });
         } else {
-            paneTitle.getChildren().add(makeControls(btnMinimize, btnClose));
+            // header.getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
+            header.getChildren().add(makeControls(btnMinimize, btnClose));
         }
 
-        return paneTitle;
+        return header;
     }
 
-    public void minimizeMdiWindow() {
-        borderPane.setVisible(false);
-        borderPane.fireEvent(new MDIEvent(imgLogo, MDIEvent.EVENT_MINIMIZED));
+    private Ikon resolveDetachIcon() {
+        return isDetached() ? MaterialDesign.MDI_ARROW_DOWN_BOLD : MaterialDesign.MDI_ARROW_UP_BOLD;
     }
 
-    public void maximizeRestoreMdiWindow() {
-
-        Pane parent = (Pane) getParent();
-        if (isMaximized == false) {
-            lastX = getLayoutX();
-            lastY = getLayoutY();
-            previousHeightToResize = getHeight();
-            previousWidthToResize = getWidth();
-            isMaximized = true;
-            try {
-                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_RESTORE));
-            } catch (Exception ex) {
-                Logger.getLogger(InternalWindow.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            addListenerToResizeMaximizedWindows();
+    public void minimizeWindow() {
+        if (isDetached()) {
+            detachedWindow.setIconified(true);
         } else {
-            setPrefSize(previousWidthToResize, previousHeightToResize);
-            isMaximized = false;
-            try {
-                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
-            } catch (Exception ex) {
-                Logger.getLogger(InternalWindow.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            removeListenerToResizeMaximizedWindows();
+            borderPane.setVisible(false);
+            borderPane.setManaged(false);
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_MINIMIZED));
         }
     }
 
-    private AnchorPane makeContentPane(Node content) {
+    public void maximizeOrRestoreWindow() {
+        if (isDetached()) {
+            if (!maximized) {
+                lastX = detachedWindow.getX();
+                lastY = detachedWindow.getY();
+                previousHeightToResize = detachedWindow.getHeight();
+                previousWidthToResize = detachedWindow.getWidth();
+                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_RESTORE));
+                detachedWindow.setMaximized(true);
+                maximized = true;
+            } else {
+                detachedWindow.setX(lastX);
+                detachedWindow.setY(lastY);
+                detachedWindow.setWidth(previousWidthToResize);
+                detachedWindow.setHeight(previousHeightToResize);
+                maximized = false;
+                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
+            }
+        } else {
+            setVisible(true);
+            setManaged(true);
+            if (!maximized) {
+                lastX = getLayoutX();
+                lastY = getLayoutY();
+                previousHeightToResize = getHeight();
+                previousWidthToResize = getWidth();
+                maximized = true;
+                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_RESTORE));
+                addListenerToResizeMaximizedWindows();
+            } else {
+                setPrefSize(previousWidthToResize, previousHeightToResize);
+                maximized = false;
+                btnMaximize.setGraphic(new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
+                removeListenerToResizeMaximizedWindows();
+            }
+        }
+    }
+
+    private Pane makeContentPane(Node content) {
+        this.content = content;
         AnchorPane paneContent = new AnchorPane(content);
         content.setStyle("-fx-background-color: #F9F9F9; -fx-border-color: #F2F2F2");
         AnchorPane.setBottomAnchor(content, 0d);
@@ -222,16 +271,15 @@ public class InternalWindow extends BorderPane {
         return paneContent;
     }
 
-    private HBox makeTitle(String title) {
+    private HBox makeTitlePane(String title) {
         HBox hbLeft = new HBox();
         hbLeft.setSpacing(10d);
-        ImageView imvLogo = imgLogo != null ? imgLogo : new ImageView();
         lblTitle = new Label(title);
         lblTitle.getStyleClass().add("internal-window-titlebar-title");
         //        lblTitle.setStyle("-fx-font-weight: bold;");
         //lblTitle.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
 
-        hbLeft.getChildren().add(imvLogo);
+        if (icon != null) { hbLeft.getChildren().add(icon); }
         hbLeft.getChildren().add(lblTitle);
         hbLeft.setAlignment(Pos.CENTER_LEFT);
         AnchorPane.setLeftAnchor(hbLeft, 10d);
@@ -239,6 +287,15 @@ public class InternalWindow extends BorderPane {
         AnchorPane.setRightAnchor(hbLeft, 20d);
         AnchorPane.setTopAnchor(hbLeft, 0d);
         return hbLeft;
+    }
+
+    public void setIcon(Node icon) {
+        this.icon = icon;
+        if (titlePane.getChildren().size() == 1) {
+            titlePane.getChildren().add(0, icon);
+        } else {
+            titlePane.getChildren().set(0, icon);
+        }
     }
 
     private HBox makeControls(Node... nodes) {
@@ -253,7 +310,7 @@ public class InternalWindow extends BorderPane {
 
     private void moveListener() {
         this.setOnMouseDragged((MouseEvent dragEvent) -> {
-            if (!isMaximized) {
+            if (!maximized) {
                 //Move
                 x += dragEvent.getSceneX() - mousex;
                 y += dragEvent.getSceneY() - mousey;
@@ -383,51 +440,95 @@ public class InternalWindow extends BorderPane {
 
     }
 
-    public void placeMdiWindow(AlignPosition alignPosition) {
-        Platform.runLater(() -> ((DesktopPane) this.getParent().getParent()).placeMdiWindow(this, alignPosition));
+    public void place(AlignPosition alignPosition) {
+        Platform.runLater(() -> desktopPane.placeInternalWindow(this, alignPosition));
     }
 
-    public void placeMdiWindow(Point2D point) {
-        Platform.runLater(() -> ((DesktopPane) this.getParent().getParent()).placeMdiWindow(this, point));
+    public void place(Point2D point) {
+        Platform.runLater(() -> desktopPane.placeInternalWindow(this, point));
     }
 
-    public void centerMdiWindow() {
-        Platform.runLater(() -> ((DesktopPane) this.getParent().getParent()).centerMdiWindow(this));
+    public void center() {
+        Platform.runLater(() -> desktopPane.centerInternalWindow(this));
     }
 
-    public void closeMdiWindow() {
+    public void closeWindow() {
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_CLOSED));
+        if (isDetached()) {
+            detachedWindow.close();
+        } else {
+            ScaleTransition st = hideWindow();
+
+            st.setOnFinished(t -> {
+                desktopPane.removeInternalWindow(this);
+                closed.setValue(true);
+            });
+
+            st.play();
+        }
+    }
+
+    private ScaleTransition hideWindow() {
         ScaleTransition st = new ScaleTransition(Duration.millis(100), borderPane);
         st.setToX(0);
         st.setToY(0);
         st.setByX(1);
         st.setByY(1);
-
         st.setCycleCount(1);
+        return st;
+    }
 
-        st.play();
-        borderPane.fireEvent(new MDIEvent(null, MDIEvent.EVENT_CLOSED));
-        st.setOnFinished((ActionEvent t) -> {
+    private DesktopPane dp;
 
-            DesktopPane desktopPane = (DesktopPane) this.getParent().getParent();
-            for (int i = 0; i < desktopPane.getInternalWindowContainer().getChildren().size(); i++) {
-                InternalWindow window = (InternalWindow) desktopPane.getInternalWindowContainer().getChildren().get(i);
-                if (window.getId().equals(borderPane.getId())) {
-                    desktopPane.getInternalWindowContainer().getChildren().remove(i);
-                }
+    public void detachOrAttachWindow() {
+        setDetached(!isDetached());
+
+        if (isDetached()) {
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_DETACHED));
+            if (detachedWindow == null) {
+                detachedWindow = new Stage();
+                //detachedWindow.initStyle(StageStyle.UNDECORATED);
+                detachedWindow.setScene(new Scene(new BorderPane()));
             }
-            isClosed.setValue(true);
-        });
+            Window window = desktopPane.getScene().getWindow();
+            double cx = window.getX() + (window.getWidth() / 2);
+            double cy = window.getY() + (window.getHeight() / 2);
+            detachedWindow.getScene().getStylesheets().setAll(getScene().getStylesheets());
+
+            dp = desktopPane.removeInternalWindow(this);
+
+            BorderPane bp = (BorderPane) detachedWindow.getScene().getRoot();
+            bp.setTop(headerPane);
+            bp.setCenter(contentPane);
+            detachedWindow.sizeToScene();
+            detachedWindow.setMaximized(maximized);
+
+            // if showing for the first time then width/height == NaN
+            if (Double.isNaN(detachedWindow.getWidth())) {
+                detachedWindow.show();
+                cx -= detachedWindow.getWidth() / 2;
+                cy -= detachedWindow.getHeight() / 2;
+                detachedWindow.setX(cx);
+                detachedWindow.setY(cy);
+            } else {
+                cx -= detachedWindow.getWidth() / 2;
+                cy -= detachedWindow.getHeight() / 2;
+                detachedWindow.setX(cx);
+                detachedWindow.setY(cy);
+                detachedWindow.show();
+            }
+            detachedWindow.setMaximized(maximized);
+        } else {
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_ATTACHED));
+            detachedWindow.hide();
+            setTop(headerPane);
+            setCenter(contentPane);
+            dp.addInternalWindow(this);
+        }
     }
 
     private void bringToFrontListener() {
         this.setOnMouseClicked((MouseEvent t) -> borderPane.toFront());
-    }
-
-    private ImageView getImageFromAssets(String imageName) {
-        InputStream in = getClass().getResourceAsStream("/assets/" + imageName);
-        Image imgClose = new Image(in);
-        ImageView imvClose = new ImageView(imgClose);
-        return imvClose;
     }
 
     private void removeListenerToResizeMaximizedWindows() {
@@ -467,24 +568,16 @@ public class InternalWindow extends BorderPane {
         BOTTOM_CENTER
     }
 
-    public BooleanProperty getIsClosedProperty() {
-        return isClosed;
+    public BooleanProperty closedProperty() {
+        return closed;
     }
 
     public boolean isClosed() {
-        return isClosed.getValue();
+        return closed.getValue();
     }
 
-    public void isClosed(boolean value) {
-        isClosed.setValue(value);
-    }
-
-    public Button getBtnClose() {
-        return btnClose;
-    }
-
-    public void setBtnClose(Button btnClose) {
-        this.btnClose = btnClose;
+    public void setClosed(boolean value) {
+        closed.setValue(value);
     }
 
     public String getWindowsTitle() {
@@ -495,11 +588,111 @@ public class InternalWindow extends BorderPane {
         this.windowsTitle = windowsTitle;
     }
 
-    public Button getBtnMinimize() {
-        return btnMinimize;
+    public boolean isMinimizeVisible() {
+        return minimizeVisible.get();
     }
 
-    public void setBtnMinimize(Button btnMinimize) {
-        this.btnMinimize = btnMinimize;
+    public BooleanProperty minimizeVisibleProperty() {
+        return minimizeVisible;
+    }
+
+    public void setMinimizeVisible(boolean minimizeVisible) {
+        this.minimizeVisible.set(minimizeVisible);
+    }
+
+    public boolean isMaximizeVisible() {
+        return maximizeVisible.get();
+    }
+
+    public BooleanProperty maximizeVisibleProperty() {
+        return maximizeVisible;
+    }
+
+    public void setMaximizeVisible(boolean maximizeVisible) {
+        this.maximizeVisible.set(maximizeVisible);
+    }
+
+    public boolean isCloseVisible() {
+        return closeVisible.get();
+    }
+
+    public BooleanProperty closeVisibleProperty() {
+        return closeVisible;
+    }
+
+    public boolean isDetachVisible() {
+        return detachVisible.get();
+    }
+
+    public BooleanProperty detachVisibleProperty() {
+        return detachVisible;
+    }
+
+    public void setDetachVisible(boolean detachVisible) {
+        this.detachVisible.set(detachVisible);
+    }
+
+    public void setCloseVisible(boolean closeVisible) {
+        this.closeVisible.set(closeVisible);
+    }
+
+    public boolean isDisableMinimize() {
+        return disableMinimize.get();
+    }
+
+    public BooleanProperty disableMinimizeProperty() {
+        return disableMinimize;
+    }
+
+    public void setDisableMinimize(boolean disableMinimize) {
+        this.disableMinimize.set(disableMinimize);
+    }
+
+    public boolean isDisableMaximize() {
+        return disableMaximize.get();
+    }
+
+    public BooleanProperty disableMaximizeProperty() {
+        return disableMaximize;
+    }
+
+    public void setDisableMaximize(boolean disableMaximize) {
+        this.disableMaximize.set(disableMaximize);
+    }
+
+    public boolean isDisableClose() {
+        return disableClose.get();
+    }
+
+    public BooleanProperty disableCloseProperty() {
+        return disableClose;
+    }
+
+    public void setDisableClose(boolean disableClose) {
+        this.disableClose.set(disableClose);
+    }
+
+    public boolean isDisableDetach() {
+        return disableDetach.get();
+    }
+
+    public BooleanProperty disableDetachProperty() {
+        return disableDetach;
+    }
+
+    public void setDisableDetach(boolean disableDetach) {
+        this.disableDetach.set(disableDetach);
+    }
+
+    public boolean isDetached() {
+        return detached.get();
+    }
+
+    public BooleanProperty detachedProperty() {
+        return detached;
+    }
+
+    public void setDetached(boolean detached) {
+        this.detached.set(detached);
     }
 }

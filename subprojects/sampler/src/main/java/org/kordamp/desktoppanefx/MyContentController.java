@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015-2018 Andres Almiray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.kordamp.desktoppanefx;
 
 import javafx.animation.RotateTransition;
@@ -8,23 +23,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-import org.kordamp.desktoppanefx.scene.layout.DesktopPane;
 import org.kordamp.desktoppanefx.scene.layout.InternalWindow;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import static org.kordamp.desktoppanefx.scene.layout.DesktopPane.resolveInternalWindow;
+
 /**
- * FXML Controller class
- *
- * @author brisatc171.minto - 20/11/2015
+ * @author Lincoln Minto
  */
-
 public class MyContentController implements Initializable {
-
-    /**
-     * Initializes the controller class.
-     */
     @FXML
     private AnchorPane mainPane;
     @FXML
@@ -78,78 +87,50 @@ public class MyContentController implements Initializable {
     }
 
     private void btnAlignTOP_CENTERHandler() {
-        btnAlignTOP_CENTER.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.TOP_CENTER);
-        });
+        btnAlignTOP_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_CENTER));
     }
 
     private void btnAlignBOTTOM_CENTERHandler() {
-        btnAlignBOTTOM_CENTER.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.BOTTOM_CENTER);
-        });
+        btnAlignBOTTOM_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_CENTER));
     }
 
     private void btnAlignRIGHT_CENTERHandler() {
-        btnAlignRIGHT_CENTER.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.CENTER_RIGHT);
-        });
+        btnAlignRIGHT_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_RIGHT));
     }
 
     private void btnAlignLEFT_CENTERHandler() {
-        btnAlignLEFT_CENTER.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.CENTER_LEFT);
-        });
+        btnAlignLEFT_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_LEFT));
     }
 
     private void btnAlignRIGHT_TOPHandler() {
-        btnAlignRIGHT_TOP.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.TOP_RIGHT);
-        });
+        btnAlignRIGHT_TOP.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_RIGHT));
     }
 
     private void btnAlignRIGHT_BOTTOMHandler() {
-        btnAlignRIGHT_BOTTOM.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.BOTTOM_RIGHT);
-        });
+        btnAlignRIGHT_BOTTOM.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_RIGHT));
     }
 
     private void btnAlignLEFT_BOTTOMHandler() {
-        btnAlignLEFT_BOTTOM.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(InternalWindow.AlignPosition.BOTTOM_LEFT);
-        });
+        btnAlignLEFT_BOTTOM.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_LEFT));
     }
 
     private void btnAlignLEFT_TOPHandler() {
-        btnAlignLEFT_TOP.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.placeMdiWindow(Point2D.ZERO);
-        });
+        btnAlignLEFT_TOP.setOnAction(e -> resolveInternalWindow(mainPane).place(Point2D.ZERO));
     }
 
     private void linkHandler() {
-        link.setOnAction(e -> {
-            Sampler.hostServices.showDocument(link.getText());
-        });
+        link.setOnAction(e -> Sampler.hostServices.showDocument(link.getText()));
     }
 
     private void btnAlignCENTERHandler() {
         btnAlignCENTER.setOnAction(e -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.centerMdiWindow();
+            resolveInternalWindow(mainPane).center();
         });
     }
 
     private void btnRotateHandler() {
-        btnRotate.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            RotateTransition rt = new RotateTransition(Duration.millis(1000), myMDI);
+        btnRotate.setOnAction(e -> {
+            RotateTransition rt = new RotateTransition(Duration.millis(1000), resolveInternalWindow(mainPane));
             rt.setByAngle(360);
             rt.setCycleCount(1);
             // rt.setAutoReverse(true);
@@ -158,30 +139,21 @@ public class MyContentController implements Initializable {
     }
 
     private void btnCloseHandler() {
-        btnClose.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.closeMdiWindow();
-        });
+        btnClose.setOnAction(e -> resolveInternalWindow(mainPane).closeWindow());
     }
 
     private void btnMaximizeRestoreHandler() {
-        btnMaximizeRestore.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.maximizeRestoreMdiWindow();
-        });
+        btnMaximizeRestore.setOnAction(e -> resolveInternalWindow(mainPane).maximizeOrRestoreWindow());
     }
 
     private void btnMinimizeHandler() {
-        btnMinimize.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.minimizeMdiWindow();
-        });
+        btnMinimize.setOnAction(e -> resolveInternalWindow(mainPane).minimizeWindow());
     }
 
     private void btnDisableEnableCloseHandler() {
-        btnDisableEnableClose.setOnAction(event -> {
-            InternalWindow myMDI = DesktopPane.resolveInternalWindow(mainPane);
-            myMDI.getBtnClose().setDisable(!myMDI.getBtnClose().isDisable());
+        btnDisableEnableClose.setOnAction(e -> {
+            InternalWindow myMDI = resolveInternalWindow(mainPane);
+            myMDI.setDisableClose(!myMDI.isDisableClose());
         });
     }
 }

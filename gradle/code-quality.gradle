@@ -10,34 +10,8 @@ checkstyle {
     configProperties.checkstyleConfigDir = checkstyleConfigDir
 }
 
-if (project.hasProperty('findBugsEnabled') && project.findBugsEnabled.toBoolean()) {
-    apply plugin: 'findbugs'
-    findbugs {
-        toolVersion = '3.0.0'
-        sourceSets = [sourceSets.main]
-        ignoreFailures = true
-        reportsDir = file("$project.buildDir/reports/findbugs")
-        effort = 'max'
-        reportLevel = 'high'
-    }
-
-    findbugsMain {
-        reports {
-            xml.enabled = false
-            html.enabled = true
-        }
-    }
-
-    findbugsTest {
-        reports {
-            xml.enabled = false
-            html.enabled = true
-        }
-    }
-}
-
 license {
-    header = rootProject.file('config/HEADER')
+    header = rootProject.file('config/HEADER-ASL')
     strictCheck = true
     ignoreFailures = true
     mapping {

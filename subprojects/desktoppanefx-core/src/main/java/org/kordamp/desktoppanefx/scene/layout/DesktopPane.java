@@ -18,6 +18,7 @@ package org.kordamp.desktoppanefx.scene.layout;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -89,8 +90,8 @@ public class DesktopPane extends VBox {
         });
         getChildren().addAll(internalWindowContainer, taskBar);
 
-        addEventHandler(MDIEvent.EVENT_CLOSED, mdiCloseHandler);
-        addEventHandler(MDIEvent.EVENT_MINIMIZED, mdiMinimizedHandler);
+        addEventHandler(InternalWindowEvent.EVENT_CLOSED, mdiCloseHandler);
+        addEventHandler(InternalWindowEvent.EVENT_MINIMIZED, mdiMinimizedHandler);
     }
 
     /**
@@ -107,37 +108,57 @@ public class DesktopPane extends VBox {
     /**
      * *************************REMOVE_WINDOW******************************
      */
-    public void removeMDIWindow(String mdiWindowID) {
-        Node mdi = getItemFromMDIContainer(mdiWindowID);
-        Node iconBar = getItemFromToolBar(mdiWindowID);
+    public DesktopPane removeInternalWindow(String windowId) {
+        Node mdi = getItemFromMDIContainer(windowId);
+        Node iconBar = getItemFromToolBar(windowId);
 
         if (mdi != null) {
-            getItemFromMDIContainer(mdiWindowID).isClosed(true);
+            getItemFromMDIContainer(windowId).setClosed(true);
 
             internalWindowContainer.getChildren().remove(mdi);
         }
         if (iconBar != null) {
             tbWindows.getChildren().remove(iconBar);
         }
+
+        return this;
     }
 
     /**
      * *****************************ADD_WINDOW*********************************
      */
-    public void addMDIWindow(InternalWindow internalWindow) {
-        if (getItemFromMDIContainer(internalWindow.getId()) == null) {
-            addNew(internalWindow, null);
-        } else {
-            restoreExisting(internalWindow);
+    public DesktopPane addInternalWindow(InternalWindow internalWindow) {
+        if (internalWindow != null) {
+            if (getItemFromMDIContainer(internalWindow.getId()) == null) {
+                addNew(internalWindow, null);
+            } else {
+                restoreExisting(internalWindow);
+            }
+            internalWindow.setDesktopPane(this);
         }
+        return this;
     }
 
-    public void addMDIWindow(InternalWindow internalWindow, Point2D position) {
-        if (getItemFromMDIContainer(internalWindow.getId()) == null) {
-            addNew(internalWindow, position);
-        } else {
-            restoreExisting(internalWindow);
+    public DesktopPane addInternalWindow(InternalWindow internalWindow, Point2D position) {
+        if (internalWindow != null) {
+            if (getItemFromMDIContainer(internalWindow.getId()) == null) {
+                addNew(internalWindow, position);
+            } else {
+                restoreExisting(internalWindow);
+            }
+            internalWindow.setDesktopPane(this);
         }
+        return this;
+    }
+
+    public DesktopPane removeInternalWindow(InternalWindow internalWindow) {
+        ObservableList<Node> windows = getInternalWindowContainer().getChildren();
+        if (internalWindow != null && windows.contains(internalWindow)) {
+            windows.remove(internalWindow);
+            internalWindow.setDesktopPane(null);
+        }
+
+        return this;
     }
 
     private void addNew(InternalWindow internalWindow, Point2D position) {
@@ -146,9 +167,10 @@ public class DesktopPane extends VBox {
         if (position == null) {
             internalWindow.layoutBoundsProperty().addListener(new WidthChangeListener(this, internalWindow));
         } else {
-            this.placeMdiWindow(internalWindow, position);
+            this.placeInternalWindow(internalWindow, position);
         }
         internalWindow.toFront();
+        internalWindow.setVisible(true);
     }
 
     private void restoreExisting(InternalWindow internalWindow) {
@@ -167,24 +189,24 @@ public class DesktopPane extends VBox {
     /**
      * *****************************MDI_EVENT_HANDLERS**************************
      */
-    public EventHandler<MDIEvent> mdiCloseHandler = new EventHandler<MDIEvent>() {
+    public EventHandler<InternalWindowEvent> mdiCloseHandler = new EventHandler<InternalWindowEvent>() {
         @Override
-        public void handle(MDIEvent event) {
+        public void handle(InternalWindowEvent event) {
             InternalWindow win = (InternalWindow) event.getTarget();
             tbWindows.getChildren().remove(getItemFromToolBar(win.getId()));
             win = null;
         }
     };
-    public EventHandler<MDIEvent> mdiMinimizedHandler = new EventHandler<MDIEvent>() {
+    public EventHandler<InternalWindowEvent> mdiMinimizedHandler = new EventHandler<InternalWindowEvent>() {
         @Override
-        public void handle(MDIEvent event) {
+        public void handle(InternalWindowEvent event) {
             InternalWindow win = (InternalWindow) event.getTarget();
             String id = win.getId();
             if (getItemFromToolBar(id) == null) {
                 try {
-                    TaskBarIcon icon = new TaskBarIcon(event.imgLogo, desktopPane, win.getWindowsTitle());
+                    TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), desktopPane, win.getWindowsTitle());
                     icon.setId(win.getId());
-                    icon.getBtnClose().disableProperty().bind(win.getBtnClose().disableProperty());
+                    icon.getBtnClose().disableProperty().bind(win.disableCloseProperty());
                     tbWindows.getChildren().add(icon);
                 } catch (Exception ex) {
                     Logger.getLogger(DesktopPane.class.getName()).log(Level.SEVERE, null, ex);
@@ -224,7 +246,7 @@ public class DesktopPane extends VBox {
         return null;
     }
 
-    public void placeMdiWindow(InternalWindow internalWindow, InternalWindow.AlignPosition alignPosition) {
+    public void placeInternalWindow(InternalWindow internalWindow, InternalWindow.AlignPosition alignPosition) {
         double canvasH = getInternalWindowContainer().getLayoutBounds().getHeight();
         double canvasW = getInternalWindowContainer().getLayoutBounds().getWidth();
         double mdiH = internalWindow.getLayoutBounds().getHeight();
@@ -232,36 +254,36 @@ public class DesktopPane extends VBox {
 
         switch (alignPosition) {
             case CENTER:
-                centerMdiWindow(internalWindow);
+                centerInternalWindow(internalWindow);
                 break;
             case CENTER_LEFT:
-                placeMdiWindow(internalWindow, new Point2D(0, (int) (canvasH / 2) - (int) (mdiH / 2)));
+                placeInternalWindow(internalWindow, new Point2D(0, (int) (canvasH / 2) - (int) (mdiH / 2)));
                 break;
             case CENTER_RIGHT:
-                placeMdiWindow(internalWindow, new Point2D((int) canvasW - (int) mdiW, (int) (canvasH / 2) - (int) (mdiH / 2)));
+                placeInternalWindow(internalWindow, new Point2D((int) canvasW - (int) mdiW, (int) (canvasH / 2) - (int) (mdiH / 2)));
                 break;
             case TOP_CENTER:
-                placeMdiWindow(internalWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2), 0));
+                placeInternalWindow(internalWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2), 0));
                 break;
             case TOP_LEFT:
-                placeMdiWindow(internalWindow, Point2D.ZERO);
+                placeInternalWindow(internalWindow, Point2D.ZERO);
                 break;
             case TOP_RIGHT:
-                placeMdiWindow(internalWindow, new Point2D((int) canvasW - (int) mdiW, 0));
+                placeInternalWindow(internalWindow, new Point2D((int) canvasW - (int) mdiW, 0));
                 break;
             case BOTTOM_LEFT:
-                placeMdiWindow(internalWindow, new Point2D(0, (int) canvasH - (int) mdiH));
+                placeInternalWindow(internalWindow, new Point2D(0, (int) canvasH - (int) mdiH));
                 break;
             case BOTTOM_RIGHT:
-                placeMdiWindow(internalWindow, new Point2D((int) canvasW - (int) mdiW, (int) canvasH - (int) mdiH));
+                placeInternalWindow(internalWindow, new Point2D((int) canvasW - (int) mdiW, (int) canvasH - (int) mdiH));
                 break;
             case BOTTOM_CENTER:
-                placeMdiWindow(internalWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2), (int) canvasH - (int) mdiH));
+                placeInternalWindow(internalWindow, new Point2D((int) (canvasW / 2) - (int) (mdiW / 2), (int) canvasH - (int) mdiH));
                 break;
         }
     }
 
-    public void placeMdiWindow(InternalWindow internalWindow, Point2D point) {
+    public void placeInternalWindow(InternalWindow internalWindow, Point2D point) {
         double windowsWidth = internalWindow.getLayoutBounds().getWidth();
         double windowsHeight = internalWindow.getLayoutBounds().getHeight();
         internalWindow.setPrefSize(windowsWidth, windowsHeight);
@@ -293,7 +315,7 @@ public class DesktopPane extends VBox {
         internalWindow.setVisible(true);
     }
 
-    public void centerMdiWindow(InternalWindow internalWindow) {
+    public void centerInternalWindow(InternalWindow internalWindow) {
         double w = getInternalWindowContainer().getLayoutBounds().getWidth();
         double h = getInternalWindowContainer().getLayoutBounds().getHeight();
 
@@ -305,7 +327,7 @@ public class DesktopPane extends VBox {
                 (int) (w / 2) - (int) (windowsWidth / 2),
                 (int) (h / 2) - (int) (windowsHeight / 2)
             );
-            this.placeMdiWindow(internalWindow, centerCoordinate);
+            this.placeInternalWindow(internalWindow, centerCoordinate);
         });
     }
 
@@ -336,7 +358,7 @@ public class DesktopPane extends VBox {
 
         @Override
         public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-            this.desktopPane.centerMdiWindow(this.window);
+            this.desktopPane.centerInternalWindow(this.window);
             observable.removeListener(this);
         }
     }
