@@ -60,8 +60,6 @@ task apiDocs(type: Javadoc, dependsOn: copyDocs) {
     options.windowTitle = "DesktopPaneFX ${project.version}"
     options.docTitle = "DesktopPaneFX ${project.version}"
     options.footer = project.javadocFooter
-    options.links 'https://www.slf4j.org/apidocs/'
-    options.links 'https://junit.org/junit4/javadoc/latest/'
     options.links 'https://docs.oracle.com/javase/8/docs/api/'
     options.links 'https://docs.oracle.com/javase/8/javafx/api/'
 

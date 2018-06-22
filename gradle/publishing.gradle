@@ -92,7 +92,7 @@ bintray {
         name = rootProject.name
         desc = rootProject.project_description
         licenses = ['Apache-2.0']
-        labels = ['javafx'^]
+        labels = ['javafx']
         websiteUrl = project.project_url
         issueTrackerUrl = project.project_issues
         vcsUrl = project.project_scm
