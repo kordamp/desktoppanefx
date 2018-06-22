@@ -1,9 +1,10 @@
 = DesktopPaneFX
 :linkattrs:
-:project-owner: aalmiray
-:project-repo:  kordamp
-:project-name:  desktoppanefx
-:project-group: org.kordamp.desktoppanefx
+:project-owner:   aalmiray
+:project-repo:    kordamp
+:project-name:    desktoppanefx
+:project-group:   org.kordamp.desktoppanefx
+:project-version: 0.2.0-SNAPSHOT
 
 image:http://img.shields.io/travis/aalmiray/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/aalmiray/{project-name}"]
 image:http://img.shields.io/badge/license-ASL2-blue.svg["ASL2 Licensed", link="http://opensource.org/licenses/ASL2"]
@@ -20,6 +21,69 @@ This project started as a fork of link:https://github.com/lincolnminto/javaFXMDI
 == Installing
 
 You can get the latest version of **DesktopPaneFX** directly from link:https://bintray.com[Bintray's JCenter] repository.
+
+.Maven
+[source]
+[subs="verbatim,attributes"]
+----
+<dependency>
+    <group>{project-group}</group>
+    <artifactId>{project-name}</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+.Gradle
+
+[source]
+[subs="verbatim,attributes"]
+----
+compile '{project-group}:{project-name}:{project-version}'
+----
+
+== Example
+
+[source]
+----
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
+import org.kordamp.desktoppanefx.scene.layout.DesktopPane;
+import org.kordamp.desktoppanefx.scene.layout.InternalWindow;
+import org.kordamp.ikonli.javafx.FontIcon;
+
+public class Example extends Application {
+    private static int count = 0;
+
+    @Override
+    public void start(Stage stage) throws Exception {
+        DesktopPane desktopPane = new DesktopPane();
+        Button newWindow = new Button("New Window");
+        newWindow.setOnAction(e -> {
+            InternalWindow window = new InternalWindow(
+                "window-" + count,
+                new FontIcon("mdi-application:20:RED"),
+                "Title " + count++,
+                new Label("Content"));
+            desktopPane.addInternalWindow(window);
+        });
+
+        AnchorPane mainPane = new AnchorPane();
+        mainPane.setPrefSize(800, 600);
+        javafx.scene.layout.AnchorPane.setBottomAnchor(desktopPane, 0d);
+        javafx.scene.layout.AnchorPane.setLeftAnchor(desktopPane, 0d);
+        javafx.scene.layout.AnchorPane.setTopAnchor(desktopPane, 25d);//Button place
+        javafx.scene.layout.AnchorPane.setRightAnchor(desktopPane, 0d);
+        mainPane.getChildren().addAll(desktopPane, newWindow);
+
+        stage.setScene(new Scene(mainPane));
+        stage.show();
+    }
+}
+----
 
 == Building
 
