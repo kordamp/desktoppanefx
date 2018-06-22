@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 Andres Almiray
+ * Copyright 2015-2018 The original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,15 +162,15 @@ public class DesktopPane extends VBox {
     }
 
     private void addNew(InternalWindow internalWindow, Point2D position) {
-        internalWindow.setVisible(false);
+        // internalWindow.setVisible(false);
         internalWindowContainer.getChildren().add(internalWindow);
         if (position == null) {
             internalWindow.layoutBoundsProperty().addListener(new WidthChangeListener(this, internalWindow));
         } else {
-            this.placeInternalWindow(internalWindow, position);
+            placeInternalWindow(internalWindow, position);
         }
         internalWindow.toFront();
-        internalWindow.setVisible(true);
+        // internalWindow.setVisible(true);
     }
 
     private void restoreExisting(InternalWindow internalWindow) {
@@ -288,8 +288,8 @@ public class DesktopPane extends VBox {
         double windowsHeight = internalWindow.getLayoutBounds().getHeight();
         internalWindow.setPrefSize(windowsWidth, windowsHeight);
 
-        double containerWidth = this.internalWindowContainer.getLayoutBounds().getWidth();
-        double containerHeight = this.internalWindowContainer.getLayoutBounds().getHeight();
+        double containerWidth = internalWindowContainer.getLayoutBounds().getWidth();
+        double containerHeight = internalWindowContainer.getLayoutBounds().getHeight();
         if (containerWidth <= point.getX() || containerHeight <= point.getY()) {
             throw new PositionOutOfBoundsException(
                 "Tried to place MDI Window with ID " + internalWindow.getId() +
@@ -312,7 +312,7 @@ public class DesktopPane extends VBox {
 
         internalWindow.setLayoutX((int) point.getX());
         internalWindow.setLayoutY((int) point.getY());
-        internalWindow.setVisible(true);
+        //internalWindow.setVisible(true);
     }
 
     public void centerInternalWindow(InternalWindow internalWindow) {

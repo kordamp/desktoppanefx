@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 Andres Almiray
+ * Copyright 2015-2018 The original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import javafx.scene.Node;
 
 /**
  * @author Lincoln Minto
+ * @author Andres Almiray
  */
 public class InternalWindowEvent extends Event {
     public static final EventType<InternalWindowEvent> EVENT_CLOSED = new EventType<>(ANY, "EVENT_CLOSED");

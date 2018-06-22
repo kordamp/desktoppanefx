@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 Andres Almiray
+ * Copyright 2015-2018 The original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
 
 /**
  * @author Lincoln Minto
+ * @author Andres Almiray
  */
 public class TaskBarIcon extends Button {
     private Button btnClose;
@@ -97,11 +98,11 @@ public class TaskBarIcon extends Button {
         }
     };
     private EventHandler<MouseEvent> handleClose = event -> {
-        removeMDIWindow();
+        removeInternalWindow();
         removeIcon();
     };
 
-    private void removeMDIWindow() {
+    private void removeInternalWindow() {
         InternalWindow win = desktopPane.getItemFromMDIContainer(getId());
         if (win != null) {
             desktopPane.getInternalWindowContainer().getChildren().remove(win);
