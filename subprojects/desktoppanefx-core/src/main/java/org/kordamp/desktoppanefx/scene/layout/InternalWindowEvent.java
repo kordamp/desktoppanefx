@@ -17,7 +17,6 @@ package org.kordamp.desktoppanefx.scene.layout;
 
 import javafx.event.Event;
 import javafx.event.EventType;
-import javafx.scene.Node;
 
 /**
  * @author Lincoln Minto

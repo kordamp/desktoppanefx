@@ -1,4 +1,4 @@
-= Ikonli
+= DesktopPaneFX
 :linkattrs:
 :project-owner: aalmiray
 :project-repo:  kordamp
@@ -14,6 +14,8 @@ image:https://img.shields.io/badge/donations-Patreon-orange.svg[link="https://ww
 ---
 
 JDesktopPaneFX is a JavaFX version of Swing's JDesktopPane which can be used as a container for individual "child" similar to JInternalFrames.
+
+This project started as a fork of link:https://github.com/lincolnminto/javaFXMDI[JavaFXMDI] authored by Lincoln Minto.
 
 == Installing
 

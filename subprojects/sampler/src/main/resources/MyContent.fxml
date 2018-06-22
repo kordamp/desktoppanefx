@@ -74,23 +74,23 @@
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES"/>
                             </rowConstraints>
                             <children>
-                                <Button fx:id="btnAlignCENTER" mnemonicParsing="false" text="CENTER"
+                                <Button fx:id="btnAlignCenter" mnemonicParsing="false" text="CENTER"
                                         GridPane.columnIndex="2" GridPane.rowIndex="2"/>
-                                <Button fx:id="btnAlignRIGHT_TOP" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignRightTop" mnemonicParsing="false" prefWidth="110.0"
                                         text="TOP_RIGHT" GridPane.columnIndex="4"/>
-                                <Button fx:id="btnAlignLEFT_CENTER" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignLeftCenter" mnemonicParsing="false" prefWidth="110.0"
                                         text="CENTER_LEFT" GridPane.rowIndex="2"/>
-                                <Button fx:id="btnAlignRIGHT_BOTTOM" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignRightBottom" mnemonicParsing="false" prefWidth="110.0"
                                         text="BOTTOM_RIGHT" GridPane.columnIndex="4" GridPane.rowIndex="4"/>
-                                <Button fx:id="btnAlignLEFT_TOP" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignLeftTop" mnemonicParsing="false" prefWidth="110.0"
                                         text="TOP_LEFT"/>
-                                <Button fx:id="btnAlignRIGHT_CENTER" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignRightCenter" mnemonicParsing="false" prefWidth="110.0"
                                         text="CENTER_RIGHT" GridPane.columnIndex="4" GridPane.rowIndex="2"/>
-                                <Button fx:id="btnAlignLEFT_BOTTOM" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignLeftBottom" mnemonicParsing="false" prefWidth="110.0"
                                         text="BOTTOM_LEFT" GridPane.rowIndex="4"/>
-                                <Button fx:id="btnAlignTOP_CENTER" mnemonicParsing="false" prefWidth="110.0"
+                                <Button fx:id="btnAlignTopCenter" mnemonicParsing="false" prefWidth="110.0"
                                         text="TOP_CENTER" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
-                                <Button fx:id="btnAlignBOTTOM_CENTER" minWidth="-Infinity" mnemonicParsing="false"
+                                <Button fx:id="btnAlignBottomCenter" minWidth="-Infinity" mnemonicParsing="false"
                                         prefHeight="25.0" prefWidth="115.0" text="BOTTOM_CENTER"
                                         GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4"/>
                             </children>

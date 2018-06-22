@@ -60,10 +60,10 @@ public class InternalWindow extends BorderPane {
     private boolean maximized = false;
     private BooleanProperty closed = new SimpleBooleanProperty(false);
     private InternalWindow.ResizeMode resizeMode;
-    private boolean RESIZE_TOP;
-    private boolean RESIZE_LEFT;
-    private boolean RESIZE_BOTTOM;
-    private boolean RESIZE_RIGHT;
+    private boolean resizeTop;
+    private boolean resize;
+    private boolean resizeBottom;
+    private boolean resizeRight;
     private double previousWidthToResize;
     private double previousHeightToResize;
     private Node icon;
@@ -319,7 +319,7 @@ public class InternalWindow extends BorderPane {
                 mousex = dragEvent.getSceneX();
                 mousey = dragEvent.getSceneY();
                 if (resizeMode == resizeMode.NONE) {
-                    //set the positon of Node after calculation
+                    //set the position of Node after calculation
                     if (borderPane.getWidth() < borderPane.getParent().getLayoutBounds().getWidth()) {//if the panel is not biger then the window: Move
                         borderPane.setLayoutX(x);
                     }
@@ -344,21 +344,21 @@ public class InternalWindow extends BorderPane {
                         //Resize
                         //RIGHT AND DOWN
                         //Only the Right Resize
-                        if (RESIZE_RIGHT && !RESIZE_TOP && !RESIZE_BOTTOM) {
+                        if (resizeRight && !resizeTop && !resizeBottom) {
                             if (dragEvent.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())) {
                                 setPrefWidth(dragEvent.getX());
                             } else {
                                 setPrefWidth(getParent().getLayoutBounds().getWidth() - getLayoutX());
                             }
                         } //Only The Bottom Resize
-                        else if (!RESIZE_RIGHT && !RESIZE_TOP && RESIZE_BOTTOM) {
+                        else if (!resizeRight && !resizeTop && resizeBottom) {
                             if (dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
                                 setPrefHeight(dragEvent.getY());
                             } else {
                                 setPrefHeight(getParent().getLayoutBounds().getHeight() - getLayoutY());
                             }
                         } //Only The Bottom with Right Resize
-                        else if ((RESIZE_RIGHT && !RESIZE_TOP && RESIZE_BOTTOM)) {
+                        else if ((resizeRight && !resizeTop && resizeBottom)) {
                             if (dragEvent.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())
                                 && dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
                                 setPrefWidth(dragEvent.getX());
@@ -375,11 +375,11 @@ public class InternalWindow extends BorderPane {
                                     setPrefHeight(getParent().getLayoutBounds().getHeight() - getLayoutY());
                                 }
                             }
-                        } //Only The Left Resize
-                        else if (RESIZE_LEFT && !RESIZE_TOP && !RESIZE_BOTTOM) {
+                        }/* //Only The Left Resize
+                        else if (resize && !resizeTop && !resizeBottom) {
                             // DO NOTHING YET:
                             //TODO
-                        }
+                        }*/
                     }
                 }
             }
@@ -405,34 +405,34 @@ public class InternalWindow extends BorderPane {
             boolean top1 = diffMinY * scaleY < border1;
             boolean right1 = diffMaxX * scaleX < border1;
             boolean bottom1 = diffMaxY * scaleY < border1;
-            RESIZE_TOP = false;
-            RESIZE_LEFT = false;
-            RESIZE_BOTTOM = false;
-            RESIZE_RIGHT = false;
-            if (left1 && !top1 && !bottom1) {
+            resizeTop = false;
+            resize = false;
+            resizeBottom = false;
+            resizeRight = false;
+            /*if (left1 && !top1 && !bottom1) {
             } else if (left1 && top1 && !bottom1) {
             } else if (left1 && !top1 && bottom1) {
-            } else if (right1 && !top1 && !bottom1) {
+            } else*/ if (right1 && !top1 && !bottom1) {
                 if (!disableResize) {
                     setCursor(Cursor.E_RESIZE);
                 }
                 resizeMode = ResizeMode.RIGHT;
-                RESIZE_RIGHT = true;
-            } else if (right1 && top1 && !bottom1) {
+                resizeRight = true;
+            //} else if (right1 && top1 && !bottom1) {
             } else if (right1 && !top1 && bottom1) {
                 if (!disableResize) {
                     setCursor(Cursor.SE_RESIZE);
                 }
                 resizeMode = ResizeMode.BOTTOM_RIGHT;
-                RESIZE_RIGHT = true;
-                RESIZE_BOTTOM = true;
-            } else if (top1 && !left1 && !right1) {
+                resizeRight = true;
+                resizeBottom = true;
+            //} else if (top1 && !left1 && !right1) {
             } else if (bottom1 && !left1 && !right1) {
                 if (!disableResize) {
                     setCursor(Cursor.S_RESIZE);
                 }
                 resizeMode = ResizeMode.BOTTOM;
-                RESIZE_BOTTOM = true;
+                resizeBottom = true;
             } else {
                 setCursor(Cursor.DEFAULT);
                 resizeMode = ResizeMode.NONE;

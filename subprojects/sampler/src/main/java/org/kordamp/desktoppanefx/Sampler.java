@@ -59,13 +59,14 @@ public class Sampler extends Application {
             try {
                 content = FXMLLoader.load(getClass().getResource("/MyContent.fxml"));
             } catch (Exception e) {
+                throw new RuntimeException(e);
             }
             count++;
             //Create a new window
             InternalWindow internalWindow = new InternalWindow("UniqueID" + count,
-                    new FontIcon("mdi-application:20:RED"),
-                    "Title " + count,
-                    content);
+                new FontIcon("mdi-application:20:RED"),
+                "Title " + count,
+                content);
             //Add it to the container
             desktopPane.addInternalWindow(internalWindow);
         });

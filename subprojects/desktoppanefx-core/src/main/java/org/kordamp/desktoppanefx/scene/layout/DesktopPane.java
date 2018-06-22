@@ -42,8 +42,8 @@ public class DesktopPane extends VBox {
     private final ScrollPane taskBar;
     private HBox tbWindows;
     private DesktopPane desktopPane = this;
-    private final int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
-    private final int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 10;
+    private final static int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
+    private final static int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 10;
 
     /**
      * *********** CONSTRUICTOR *************
@@ -64,10 +64,7 @@ public class DesktopPane extends VBox {
         taskBar = new ScrollPane(tbWindows);
         Platform.runLater(() -> {
             Node viewport = taskBar.lookup(".viewport");
-            try {
-                viewport.setStyle(" -fx-background-color: transparent; ");
-            } catch (Exception e) {
-            }
+            viewport.setStyle(" -fx-background-color: transparent; ");
         });
         taskBar.setMaxHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);
         taskBar.setMinHeight(TASKBAR_HEIGHT_WITHOUT_SCROLL);

@@ -46,23 +46,23 @@ public class MyContentController implements Initializable {
     @FXML
     private Button btnClose;
     @FXML
-    private Button btnAlignCENTER;
+    private Button btnAlignCenter;
     @FXML
-    private Button btnAlignRIGHT_TOP;
+    private Button btnAlignRightTop;
     @FXML
-    private Button btnAlignRIGHT_BOTTOM;
+    private Button btnAlignRightBottom;
     @FXML
-    private Button btnAlignRIGHT_CENTER;
+    private Button btnAlignRightCenter;
     @FXML
-    private Button btnAlignLEFT_TOP;
+    private Button btnAlignLeftTop;
     @FXML
-    private Button btnAlignLEFT_BOTTOM;
+    private Button btnAlignLeftBottom;
     @FXML
-    private Button btnAlignLEFT_CENTER;
+    private Button btnAlignLeftCenter;
     @FXML
-    private Button btnAlignBOTTOM_CENTER;
+    private Button btnAlignBottomCenter;
     @FXML
-    private Button btnAlignTOP_CENTER;
+    private Button btnAlignTopCenter;
     @FXML
     private Button btnRotate;
     @FXML
@@ -88,35 +88,35 @@ public class MyContentController implements Initializable {
     }
 
     private void btnAlignTOP_CENTERHandler() {
-        btnAlignTOP_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_CENTER));
+        btnAlignTopCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_CENTER));
     }
 
     private void btnAlignBOTTOM_CENTERHandler() {
-        btnAlignBOTTOM_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_CENTER));
+        btnAlignBottomCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_CENTER));
     }
 
     private void btnAlignRIGHT_CENTERHandler() {
-        btnAlignRIGHT_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_RIGHT));
+        btnAlignRightCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_RIGHT));
     }
 
     private void btnAlignLEFT_CENTERHandler() {
-        btnAlignLEFT_CENTER.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_LEFT));
+        btnAlignLeftCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_LEFT));
     }
 
     private void btnAlignRIGHT_TOPHandler() {
-        btnAlignRIGHT_TOP.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_RIGHT));
+        btnAlignRightTop.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_RIGHT));
     }
 
     private void btnAlignRIGHT_BOTTOMHandler() {
-        btnAlignRIGHT_BOTTOM.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_RIGHT));
+        btnAlignRightBottom.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_RIGHT));
     }
 
     private void btnAlignLEFT_BOTTOMHandler() {
-        btnAlignLEFT_BOTTOM.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_LEFT));
+        btnAlignLeftBottom.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_LEFT));
     }
 
     private void btnAlignLEFT_TOPHandler() {
-        btnAlignLEFT_TOP.setOnAction(e -> resolveInternalWindow(mainPane).place(Point2D.ZERO));
+        btnAlignLeftTop.setOnAction(e -> resolveInternalWindow(mainPane).place(Point2D.ZERO));
     }
 
     private void linkHandler() {
@@ -124,7 +124,7 @@ public class MyContentController implements Initializable {
     }
 
     private void btnAlignCENTERHandler() {
-        btnAlignCENTER.setOnAction(e -> {
+        btnAlignCenter.setOnAction(e -> {
             resolveInternalWindow(mainPane).center();
         });
     }
