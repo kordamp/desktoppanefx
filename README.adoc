@@ -4,7 +4,7 @@
 :project-repo:    kordamp
 :project-name:    desktoppanefx
 :project-group:   org.kordamp.desktoppanefx
-:project-version: 0.2.0-SNAPSHOT
+:project-version: 0.2.0
 
 image:http://img.shields.io/travis/aalmiray/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/aalmiray/{project-name}"]
 image:http://img.shields.io/badge/license-ASL2-blue.svg["ASL2 Licensed", link="http://opensource.org/licenses/ASL2"]
@@ -20,7 +20,8 @@ This project started as a fork of link:https://github.com/lincolnminto/javaFXMDI
 
 == Installing
 
-You can get the latest version of **DesktopPaneFX** directly from link:https://bintray.com[Bintray's JCenter] repository.
+You can get the latest version of **DesktopPaneFX** directly from link:https://bintray.com[Bintray's JCenter] repository
+or from Maven Central.
 
 .Maven
 [source]
