@@ -88,31 +88,31 @@ public class MyContentController implements Initializable {
     }
 
     private void btnAlignTOP_CENTERHandler() {
-        btnAlignTopCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_CENTER));
+        btnAlignTopCenter.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.TOP_CENTER));
     }
 
     private void btnAlignBOTTOM_CENTERHandler() {
-        btnAlignBottomCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_CENTER));
+        btnAlignBottomCenter.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.BOTTOM_CENTER));
     }
 
     private void btnAlignRIGHT_CENTERHandler() {
-        btnAlignRightCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_RIGHT));
+        btnAlignRightCenter.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.CENTER_RIGHT));
     }
 
     private void btnAlignLEFT_CENTERHandler() {
-        btnAlignLeftCenter.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.CENTER_LEFT));
+        btnAlignLeftCenter.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.CENTER_LEFT));
     }
 
     private void btnAlignRIGHT_TOPHandler() {
-        btnAlignRightTop.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.TOP_RIGHT));
+        btnAlignRightTop.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.TOP_RIGHT));
     }
 
     private void btnAlignRIGHT_BOTTOMHandler() {
-        btnAlignRightBottom.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_RIGHT));
+        btnAlignRightBottom.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.BOTTOM_RIGHT));
     }
 
     private void btnAlignLEFT_BOTTOMHandler() {
-        btnAlignLeftBottom.setOnAction(e -> resolveInternalWindow(mainPane).place(InternalWindow.AlignPosition.BOTTOM_LEFT));
+        btnAlignLeftBottom.setOnAction(e -> resolveInternalWindow(mainPane).snapTo(InternalWindow.AlignPosition.BOTTOM_LEFT));
     }
 
     private void btnAlignLEFT_TOPHandler() {

@@ -18,13 +18,13 @@ package org.kordamp.desktoppanefx.scene.layout;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,10 +36,9 @@ import java.util.logging.Logger;
 public class DesktopPane extends BorderPane {
     private final AnchorPane internalWindowContainer;
     private final TaskBar taskBar;
+    private final ObservableList<InternalWindow> internalWindows = FXCollections.observableArrayList();
+    private final ObservableList<InternalWindow> unmodifiableInternalWindows = FXCollections.unmodifiableObservableList(internalWindows);
 
-    /**
-     * *********** CONSTRUCTOR *************
-     */
     public DesktopPane() {
         super();
         getStylesheets().add("/org/kordamp/desktoppanefx/scene/layout/default-desktoppane-stylesheet.css");
@@ -66,42 +65,17 @@ public class DesktopPane extends BorderPane {
         });
     }
 
-    /**
-     * ***********************GETTER***********************************
-     */
-    public Pane getInternalWindowContainer() {
-        return internalWindowContainer;
+    public ObservableList<InternalWindow> getInternalWindows() {
+        return unmodifiableInternalWindows;
     }
 
     public TaskBar getTaskBar() {
         return taskBar;
     }
 
-    /**
-     * *************************REMOVE_WINDOW******************************
-     */
-    public DesktopPane removeInternalWindow(String windowId) {
-        Node mdi = getItemFromMDIContainer(windowId);
-        Node iconBar = getItemFromToolBar(windowId);
-
-        if (mdi != null) {
-            getItemFromMDIContainer(windowId).setClosed(true);
-
-            internalWindowContainer.getChildren().remove(mdi);
-        }
-        if (iconBar != null) {
-            taskBar.removeTaskNode(iconBar);
-        }
-
-        return this;
-    }
-
-    /**
-     * *****************************ADD_WINDOW*********************************
-     */
     public DesktopPane addInternalWindow(InternalWindow internalWindow) {
         if (internalWindow != null) {
-            if (getItemFromMDIContainer(internalWindow.getId()) == null) {
+            if (findInternalWindow(internalWindow.getId()) == null) {
                 addNew(internalWindow, null);
             } else {
                 restoreExisting(internalWindow);
@@ -113,7 +87,7 @@ public class DesktopPane extends BorderPane {
 
     public DesktopPane addInternalWindow(InternalWindow internalWindow, Point2D position) {
         if (internalWindow != null) {
-            if (getItemFromMDIContainer(internalWindow.getId()) == null) {
+            if (findInternalWindow(internalWindow.getId()) == null) {
                 addNew(internalWindow, position);
             } else {
                 restoreExisting(internalWindow);
@@ -124,8 +98,9 @@ public class DesktopPane extends BorderPane {
     }
 
     public DesktopPane removeInternalWindow(InternalWindow internalWindow) {
-        ObservableList<Node> windows = getInternalWindowContainer().getChildren();
+        ObservableList<Node> windows = internalWindowContainer.getChildren();
         if (internalWindow != null && windows.contains(internalWindow)) {
+            internalWindows.remove(internalWindow);
             windows.remove(internalWindow);
             internalWindow.setDesktopPane(null);
         }
@@ -133,8 +108,25 @@ public class DesktopPane extends BorderPane {
         return this;
     }
 
+    public DesktopPane removeInternalWindow(String windowId) {
+        Node internalWindow = findInternalWindow(windowId);
+        Node taskIcon = findTaskBarIcon(windowId);
+
+        if (internalWindow != null) {
+            findInternalWindow(windowId).setClosed(true);
+            internalWindows.remove(internalWindow);
+            internalWindowContainer.getChildren().remove(internalWindow);
+        }
+        if (taskIcon != null) {
+            taskBar.removeTaskNode(taskIcon);
+        }
+
+        return this;
+    }
+
     private void addNew(InternalWindow internalWindow, Point2D position) {
         // internalWindow.setVisible(false);
+        internalWindows.add(internalWindow);
         internalWindowContainer.getChildren().add(internalWindow);
         if (position == null) {
             internalWindow.layoutBoundsProperty().addListener(new WidthChangeListener(this, internalWindow));
@@ -146,8 +138,8 @@ public class DesktopPane extends BorderPane {
     }
 
     private void restoreExisting(InternalWindow internalWindow) {
-        if (getItemFromToolBar(internalWindow.getId()) != null) {
-            taskBar.removeTaskNode(getItemFromToolBar(internalWindow.getId()));
+        if (findTaskBarIcon(internalWindow.getId()) != null) {
+            taskBar.removeTaskNode(findTaskBarIcon(internalWindow.getId()));
         }
         for (int i = 0; i < internalWindowContainer.getChildren().size(); i++) {
             Node node = internalWindowContainer.getChildren().get(i);
@@ -158,47 +150,37 @@ public class DesktopPane extends BorderPane {
         }
     }
 
-    /**
-     * *****************************MDI_EVENT_HANDLERS**************************
-     */
     private final EventHandler<InternalWindowEvent> mdiCloseHandler = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
-            InternalWindow win = (InternalWindow) event.getTarget();
-            taskBar.removeTaskNode(getItemFromToolBar(win.getId()));
-            win = null;
+            taskBar.removeTaskNode(findTaskBarIcon(((InternalWindow) event.getTarget()).getId()));
         }
     };
 
     private final EventHandler<InternalWindowEvent> mdiMinimizedHandler = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
-            InternalWindow win = (InternalWindow) event.getTarget();
-            String id = win.getId();
-            if (getItemFromToolBar(id) == null) {
+            InternalWindow internalWindow = (InternalWindow) event.getTarget();
+            String id = internalWindow.getId();
+            if (findTaskBarIcon(id) == null) {
                 try {
-                    TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), DesktopPane.this, win.getWindowsTitle());
-                    icon.setId(win.getId());
-                    icon.getBtnClose().disableProperty().bind(win.disableCloseProperty());
+                    TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), DesktopPane.this, internalWindow.getTitle());
+                    icon.setId(internalWindow.getId());
+                    icon.disableCloseProperty().bind(internalWindow.disableCloseProperty());
                     taskBar.addTaskNode(icon);
                 } catch (Exception ex) {
                     Logger.getLogger(DesktopPane.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
             }
         }
     };
 
-    /**
-     * ***************** UTILITIES******************************************
-     */
-    public TaskBarIcon getItemFromToolBar(String id) {
+
+    public TaskBarIcon findTaskBarIcon(String id) {
         for (Node node : taskBar.getTaskNodes()) {
             if (node instanceof TaskBarIcon) {
                 TaskBarIcon icon = (TaskBarIcon) node;
-                //String key = icon.getLblName().getText();
-                String key = icon.getId();
-                if (key.equalsIgnoreCase(id)) {
+                if (icon.getId().equals(id)) {
                     return icon;
                 }
             }
@@ -206,12 +188,11 @@ public class DesktopPane extends BorderPane {
         return null;
     }
 
-    public InternalWindow getItemFromMDIContainer(String id) {
+    public InternalWindow findInternalWindow(String id) {
         for (Node node : internalWindowContainer.getChildren()) {
             if (node instanceof InternalWindow) {
                 InternalWindow win = (InternalWindow) node;
                 if (win.getId().equals(id)) {
-
                     return win;
                 }
             }
@@ -219,9 +200,9 @@ public class DesktopPane extends BorderPane {
         return null;
     }
 
-    public void placeInternalWindow(InternalWindow internalWindow, InternalWindow.AlignPosition alignPosition) {
-        double canvasH = getInternalWindowContainer().getLayoutBounds().getHeight();
-        double canvasW = getInternalWindowContainer().getLayoutBounds().getWidth();
+    public void snapTo(InternalWindow internalWindow, InternalWindow.AlignPosition alignPosition) {
+        double canvasH = internalWindowContainer.getLayoutBounds().getHeight();
+        double canvasW = internalWindowContainer.getLayoutBounds().getWidth();
         double mdiH = internalWindow.getLayoutBounds().getHeight();
         double mdiW = internalWindow.getLayoutBounds().getWidth();
 
@@ -265,7 +246,7 @@ public class DesktopPane extends BorderPane {
         double containerHeight = internalWindowContainer.getLayoutBounds().getHeight();
         if (containerWidth <= point.getX() || containerHeight <= point.getY()) {
             throw new PositionOutOfBoundsException(
-                "Tried to place MDI Window with ID " + internalWindow.getId() +
+                "Tried to snapTo MDI Window with ID " + internalWindow.getId() +
                     " at a coordinate " + point.toString() +
                     " that is beyond current size of the MDI container " +
                     containerWidth + "px x " + containerHeight + "px."
@@ -275,7 +256,7 @@ public class DesktopPane extends BorderPane {
         if ((containerWidth - point.getX() < 40) ||
             (containerHeight - point.getY() < 40)) {
             throw new PositionOutOfBoundsException(
-                "Tried to place MDI Window with ID " + internalWindow.getId() +
+                "Tried to snapTo MDI Window with ID " + internalWindow.getId() +
                     " at a coordinate " + point.toString() +
                     " that is too close to the edge of the parent of size " +
                     containerWidth + "px x " + containerHeight + "px " +
@@ -289,8 +270,8 @@ public class DesktopPane extends BorderPane {
     }
 
     public void centerInternalWindow(InternalWindow internalWindow) {
-        double w = getInternalWindowContainer().getLayoutBounds().getWidth();
-        double h = getInternalWindowContainer().getLayoutBounds().getHeight();
+        double w = internalWindowContainer.getLayoutBounds().getWidth();
+        double h = internalWindowContainer.getLayoutBounds().getHeight();
 
         Platform.runLater(() -> {
             double windowsWidth = internalWindow.getLayoutBounds().getWidth();

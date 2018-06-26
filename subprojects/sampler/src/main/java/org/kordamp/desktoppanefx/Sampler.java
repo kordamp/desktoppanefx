@@ -46,7 +46,7 @@ public class Sampler extends Application {
         //Fit it to the main Pane
         AnchorPane.setBottomAnchor(desktopPane, 0d);
         AnchorPane.setLeftAnchor(desktopPane, 0d);
-        AnchorPane.setTopAnchor(desktopPane, 25d);//Button place
+        AnchorPane.setTopAnchor(desktopPane, 25d);//Button snapTo
         AnchorPane.setRightAnchor(desktopPane, 0d);
         //Put the container Into the main pane
         mainPane.getChildren().add(desktopPane);

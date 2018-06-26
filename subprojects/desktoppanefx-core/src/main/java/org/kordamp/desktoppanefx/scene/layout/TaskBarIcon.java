@@ -15,6 +15,10 @@
  */
 package org.kordamp.desktoppanefx.scene.layout;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -31,37 +35,43 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
  * @author Andres Almiray
  */
 public class TaskBarIcon extends Button {
-    private Button btnClose;
-    private Label lblName;
+    private final Button btnClose;
+    private final Label lblTitle;
     private final DesktopPane desktopPane;
     private Node icon;
+
+    private final BooleanProperty closeVisible = new SimpleBooleanProperty(this, "closeVisible", true);
+    private final BooleanProperty disableClose = new SimpleBooleanProperty(this, "disableClose", false);
+
+    private final StringProperty title = new SimpleStringProperty(this, "title", "");
+
     private final String cssDefault = "-fx-border-color:blue;" + "-fx-border-width: 1;"
         + "-fx-spacing:5.0;" + "-fx-alignment:center-left ";
 
     /**
      * *************************** CONSTRUCTOR
      */
-    public TaskBarIcon(Node icon, DesktopPane desktopPane, String name) throws Exception {
+    public TaskBarIcon(Node icon, DesktopPane desktopPane, String title) {
         super();
         HBox hBox = new HBox();
         hBox.setStyle("-fx-alignment:center-left");
 
         getStyleClass().add("taskbar-icon");
-        //        styleProperty().bind(StylesCSS.taskBarIconStyleProperty);
 
-        //setStyle(cssDefault);
         hBox.setSpacing(10d);
         hBox.setPadding(new Insets(0, 10, 0, 10));
         this.icon = icon;
         this.desktopPane = desktopPane;
-        lblName = new Label(name);
-        lblName.getStyleClass().add("titleText");
-        //lblName.styleProperty().bind(StylesCSS.taskBarIconTextStyleProperty);
+        lblTitle = new Label();
+        lblTitle.textProperty().bind(titleProperty());
+        setTitle(title);
         addEventHandler(MouseEvent.MOUSE_CLICKED, handleMaximize);
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
+        btnClose.visibleProperty().bind(closeVisible);
+        btnClose.managedProperty().bind(closeVisible);
+        btnClose.disableProperty().bind(disableClose);
         btnClose.getStyleClass().add("controlButtons");
-        //        btnClose.styleProperty().bind(StylesCSS.controlButtonsStyleProperty);
         //Adding the shadow when the mouse cursor is on
         final DropShadow shadowCloseBtn = new DropShadow();
         shadowCloseBtn.setHeight(10d);
@@ -71,29 +81,18 @@ public class TaskBarIcon extends Button {
         btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> btnClose.setEffect(null));
         btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, handleClose);
         //hBox.getChildren().addAll(imgLogo == null ? new ImageView() : new ImageView(imgLogo.getImage()), lblName, btnClose);
-        hBox.getChildren().addAll(icon, lblName, btnClose);
+        hBox.getChildren().addAll(icon, lblTitle, btnClose);
         setGraphic(hBox);
     }
 
-    /**
-     * ****************************** GET/SET
-     */
-    public Label getLblName() {
-        return lblName;
-    }
-
-    /**
-     * ******************************** BUTTON_HANDLERS
-     */
     private EventHandler<MouseEvent> handleMaximize = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
-            InternalWindow win = desktopPane.getItemFromMDIContainer(getId());
-            if (win != null) {
+            InternalWindow internalWindow = desktopPane.findInternalWindow(getId());
+            if (internalWindow != null) {
                 removeIcon();
-                win.setIcon(icon);
-                win.setVisible(true);
-                win.toFront();
+                internalWindow.setIcon(icon);
+                internalWindow.maximizeOrRestoreWindow();
             }
         }
     };
@@ -104,24 +103,52 @@ public class TaskBarIcon extends Button {
     };
 
     private void removeInternalWindow() {
-        InternalWindow win = desktopPane.getItemFromMDIContainer(getId());
+        InternalWindow win = desktopPane.findInternalWindow(getId());
         if (win != null) {
-            desktopPane.getInternalWindowContainer().getChildren().remove(win);
+            desktopPane.removeInternalWindow(win);
         }
     }
 
     private void removeIcon() {
-        TaskBarIcon icon = desktopPane.getItemFromToolBar(getId());
+        TaskBarIcon icon = desktopPane.findTaskBarIcon(getId());
         if (icon != null) {
             desktopPane.getTaskBar().removeTaskNode(icon);
         }
     }
 
-    public Button getBtnClose() {
-        return btnClose;
+    public boolean isCloseVisible() {
+        return closeVisible.get();
     }
 
-    public void setBtnClose(Button btnClose) {
-        this.btnClose = btnClose;
+    public BooleanProperty closeVisibleProperty() {
+        return closeVisible;
+    }
+
+    public void setCloseVisible(boolean closeVisible) {
+        this.closeVisible.set(closeVisible);
+    }
+
+    public boolean isDisableClose() {
+        return disableClose.get();
+    }
+
+    public BooleanProperty disableCloseProperty() {
+        return disableClose;
+    }
+
+    public void setDisableClose(boolean disableClose) {
+        this.disableClose.set(disableClose);
+    }
+
+    public String getTitle() {
+        return title.get();
+    }
+
+    public StringProperty titleProperty() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title.set(title);
     }
 }
