@@ -45,12 +45,6 @@ public class TaskBarIcon extends Button {
 
     private final StringProperty title = new SimpleStringProperty(this, "title", "");
 
-    private final String cssDefault = "-fx-border-color:blue;" + "-fx-border-width: 1;"
-        + "-fx-spacing:5.0;" + "-fx-alignment:center-left ";
-
-    /**
-     * *************************** CONSTRUCTOR
-     */
     public TaskBarIcon(Node icon, DesktopPane desktopPane, String title) {
         super();
         HBox hBox = new HBox();
@@ -65,7 +59,7 @@ public class TaskBarIcon extends Button {
         lblTitle = new Label();
         lblTitle.textProperty().bind(titleProperty());
         setTitle(title);
-        addEventHandler(MouseEvent.MOUSE_CLICKED, handleMaximize);
+        addEventHandler(MouseEvent.MOUSE_CLICKED, e -> restoreWindow());
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
         btnClose.visibleProperty().bind(closeVisible);
@@ -80,22 +74,18 @@ public class TaskBarIcon extends Button {
         //Removing the shadow when the mouse cursor is off
         btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> btnClose.setEffect(null));
         btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, handleClose);
-        //hBox.getChildren().addAll(imgLogo == null ? new ImageView() : new ImageView(imgLogo.getImage()), lblName, btnClose);
         hBox.getChildren().addAll(icon, lblTitle, btnClose);
         setGraphic(hBox);
     }
 
-    private EventHandler<MouseEvent> handleMaximize = new EventHandler<MouseEvent>() {
-        @Override
-        public void handle(MouseEvent event) {
-            InternalWindow internalWindow = desktopPane.findInternalWindow(getId());
-            if (internalWindow != null) {
-                removeIcon();
-                internalWindow.setIcon(icon);
-                internalWindow.maximizeOrRestoreWindow();
-            }
-        }
-    };
+    public void restoreWindow() {
+        desktopPane.findInternalWindow(getId()).ifPresent(internalWindow -> {
+            removeIcon();
+            internalWindow.setIcon(icon);
+            internalWindow.maximizeOrRestoreWindow();
+
+        });
+    }
 
     private EventHandler<MouseEvent> handleClose = event -> {
         removeInternalWindow();
@@ -103,17 +93,13 @@ public class TaskBarIcon extends Button {
     };
 
     private void removeInternalWindow() {
-        InternalWindow win = desktopPane.findInternalWindow(getId());
-        if (win != null) {
-            desktopPane.removeInternalWindow(win);
-        }
+        desktopPane.findInternalWindow(getId())
+            .ifPresent(desktopPane::removeInternalWindow);
     }
 
     private void removeIcon() {
-        TaskBarIcon icon = desktopPane.findTaskBarIcon(getId());
-        if (icon != null) {
-            desktopPane.getTaskBar().removeTaskNode(icon);
-        }
+        desktopPane.findTaskBarIcon(getId())
+            .ifPresent(desktopPane.getTaskBar()::removeTaskBarIcon);
     }
 
     public boolean isCloseVisible() {
