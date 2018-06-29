@@ -34,6 +34,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -175,33 +176,37 @@ public class InternalWindow extends BorderPane {
         header.setPadding(new Insets(0, 11, 0, 0));
 
         btnDetach = new Button("", new FontIcon(resolveDetachIcon()));
+        btnDetach.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         detachedProperty().addListener((v, o, n) -> btnDetach.setGraphic(new FontIcon(resolveDetachIcon())));
         btnDetach.getStyleClass().add("internal-window-titlebar-button");
         btnDetach.visibleProperty().bind(detachVisible);
         btnDetach.managedProperty().bind(detachVisible);
         btnDetach.disableProperty().bind(disableDetach);
-        btnDetach.setOnMouseClicked((MouseEvent t) -> detachOrAttachWindow());
+        btnDetach.setOnMouseClicked(e -> detachOrAttachWindow());
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
+        btnClose.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         btnClose.getStyleClass().add("internal-window-titlebar-button");
         btnClose.visibleProperty().bind(closeVisible);
         btnClose.managedProperty().bind(closeVisible);
         btnClose.disableProperty().bind(disableClose);
-        btnClose.setOnMouseClicked((MouseEvent t) -> closeWindow());
+        btnClose.setOnMouseClicked(e -> closeWindow());
 
         btnMinimize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MINIMIZE));
+        btnMinimize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         btnMinimize.getStyleClass().add("internal-window-titlebar-button");
         btnMinimize.visibleProperty().bind(minimizeVisible);
         btnMinimize.managedProperty().bind(minimizeVisible);
         btnMinimize.disableProperty().bind(disableMinimize);
-        btnMinimize.setOnMouseClicked((MouseEvent t) -> minimizeWindow());
+        btnMinimize.setOnMouseClicked(e -> minimizeWindow());
 
         btnMaximize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
+        btnMaximize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         btnMaximize.getStyleClass().add("internal-window-titlebar-button");
         btnMaximize.visibleProperty().bind(maximizeVisible);
         btnMaximize.managedProperty().bind(maximizeVisible);
         btnMaximize.disableProperty().bind(disableMaximize);
-        btnMaximize.setOnMouseClicked((MouseEvent t) -> maximizeOrRestoreWindow());
+        btnMaximize.setOnMouseClicked(e -> maximizeOrRestoreWindow());
 
         if (!disableResize) {
             // header.getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));

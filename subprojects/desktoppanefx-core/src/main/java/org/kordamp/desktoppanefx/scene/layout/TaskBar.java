@@ -16,7 +16,9 @@
 package org.kordamp.desktoppanefx.scene.layout;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,12 +32,14 @@ import javafx.scene.layout.HBox;
 public class TaskBar {
     private final static int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
     private final static int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 20;
+
     private final ScrollPane taskBar;
     private final HBox taskBarContentPane;
     private final ObservableList<TaskBarIcon> icons = FXCollections.observableArrayList();
     private final ObservableList<TaskBarIcon> unmodifieableIcons = FXCollections.unmodifiableObservableList(icons);
 
     private final ObjectProperty<Position> position = new SimpleObjectProperty<>(this, "position", Position.BOTTOM);
+    private final BooleanProperty visible = new SimpleBooleanProperty(this, "visible", true);
 
     public enum Position {
         TOP,
@@ -55,6 +59,9 @@ public class TaskBar {
         taskBar.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
         taskBar.setVmax(0);
         taskBar.getStyleClass().add("desktoppane-taskbar");
+
+        taskBar.visibleProperty().bind(visible);
+        taskBar.managedProperty().bind(visible);
 
         taskBarContentPane.widthProperty().addListener((o, v, n) -> {
             Platform.runLater(() -> {
@@ -103,5 +110,13 @@ public class TaskBar {
 
     public void setPosition(Position position) {
         this.position.set(position);
+    }
+
+    public boolean isVisible() {
+        return visible.get();
+    }
+
+    public BooleanProperty visibleProperty() {
+        return visible;
     }
 }

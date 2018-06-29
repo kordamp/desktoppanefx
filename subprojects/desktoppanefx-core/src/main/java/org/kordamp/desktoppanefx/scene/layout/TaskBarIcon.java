@@ -19,7 +19,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -47,15 +46,15 @@ public class TaskBarIcon extends Button {
 
     public TaskBarIcon(Node icon, DesktopPane desktopPane, String title) {
         super();
-        HBox hBox = new HBox();
-        hBox.setStyle("-fx-alignment:center-left");
-
-        getStyleClass().add("taskbar-icon");
-
-        hBox.setSpacing(10d);
-        hBox.setPadding(new Insets(0, 10, 0, 10));
         this.icon = icon;
         this.desktopPane = desktopPane;
+
+        HBox hBox = new HBox();
+        hBox.setStyle("-fx-alignment:center-left");
+        getStyleClass().add("taskbar-icon");
+        hBox.setSpacing(10d);
+        hBox.setPadding(new Insets(0, 10, 0, 10));
+
         lblTitle = new Label();
         lblTitle.textProperty().bind(titleProperty());
         setTitle(title);
@@ -65,15 +64,21 @@ public class TaskBarIcon extends Button {
         btnClose.visibleProperty().bind(closeVisible);
         btnClose.managedProperty().bind(closeVisible);
         btnClose.disableProperty().bind(disableClose);
-        btnClose.getStyleClass().add("controlButtons");
+        btnClose.getStyleClass().add("taskbar-icon-button");
+
         //Adding the shadow when the mouse cursor is on
         final DropShadow shadowCloseBtn = new DropShadow();
         shadowCloseBtn.setHeight(10d);
         shadowCloseBtn.setWidth(10d);
         btnClose.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> btnClose.setEffect(shadowCloseBtn));
+
         //Removing the shadow when the mouse cursor is off
         btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> btnClose.setEffect(null));
-        btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, handleClose);
+        btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+            removeInternalWindow();
+            removeIcon();
+        });
+
         hBox.getChildren().addAll(icon, lblTitle, btnClose);
         setGraphic(hBox);
     }
@@ -86,11 +91,6 @@ public class TaskBarIcon extends Button {
 
         });
     }
-
-    private EventHandler<MouseEvent> handleClose = event -> {
-        removeInternalWindow();
-        removeIcon();
-    };
 
     private void removeInternalWindow() {
         desktopPane.findInternalWindow(getId())
