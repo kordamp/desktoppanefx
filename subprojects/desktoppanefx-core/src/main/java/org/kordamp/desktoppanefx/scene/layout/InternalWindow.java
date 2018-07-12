@@ -27,6 +27,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -87,6 +88,7 @@ public class InternalWindow extends BorderPane {
     private DesktopPane desktopPane;
     private boolean wasMaximized = false;
 
+    private final BooleanProperty active = new SimpleBooleanProperty(this, "active", true);
     private final BooleanProperty closed = new SimpleBooleanProperty(this, "closed", false);
     private final BooleanProperty minimized = new SimpleBooleanProperty(this, "minimized", false);
     private final BooleanProperty maximized = new SimpleBooleanProperty(this, "maximized", false);
@@ -103,6 +105,8 @@ public class InternalWindow extends BorderPane {
     private final BooleanProperty disableDetach = new SimpleBooleanProperty(this, "disableDetach", false);
 
     private final StringProperty title = new SimpleStringProperty(this, "title", "");
+
+    private static final PseudoClass ACTIVE_CLASS = PseudoClass.getPseudoClass("active");
 
     private BooleanBinding showingBinding;
 
@@ -124,6 +128,18 @@ public class InternalWindow extends BorderPane {
         }
     }
 
+    private void updateStyle(PseudoClass pseudo, boolean newValue) {
+        pseudoClassStateChanged(pseudo, newValue);
+    }
+
+    @Override
+    public void toFront() {
+        super.toFront();
+        if (desktopPane != null) {
+            desktopPane.setActiveWindow(this);
+        }
+    }
+
     public DesktopPane getDesktopPane() {
         return desktopPane;
     }
@@ -134,6 +150,18 @@ public class InternalWindow extends BorderPane {
 
     public Node getIcon() {
         return icon;
+    }
+
+    public boolean isActive() {
+        return active.get();
+    }
+
+    public ReadOnlyBooleanProperty activeProperty() {
+        return active;
+    }
+
+    protected void setActive(boolean active) {
+        this.active.set(active);
     }
 
     private void init(String mdiWindowID, Node icon, String title, Node content) {
@@ -151,6 +179,9 @@ public class InternalWindow extends BorderPane {
         detachedWindow.setScene(new Scene(new BorderPane()));
 
         showingBinding = createBooleanBinding(() -> isVisible() | detachedWindow.isShowing(), visibleProperty(), detachedWindow.showingProperty());
+
+        updateStyle(ACTIVE_CLASS, true);
+        activeProperty().addListener((observable, oldValue, newValue) -> updateStyle(ACTIVE_CLASS, newValue));
     }
 
     public Node getContent() {
@@ -218,8 +249,8 @@ public class InternalWindow extends BorderPane {
                 }
             });
         } else {
-            header.getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
-            // header.getChildren().add(makeControls(btnMinimize, btnClose));
+            // header.getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
+            header.getChildren().add(makeControls(btnMinimize, btnClose));
         }
 
         return header;
@@ -309,6 +340,7 @@ public class InternalWindow extends BorderPane {
         addListenerToResizeMaximizedWindows();
         setVisible(true);
         setManaged(true);
+        toFront();
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_MAXIMIZED));
     }
 

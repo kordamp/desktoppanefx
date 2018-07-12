@@ -53,6 +53,11 @@
     -fx-border-radius: 10 10 0 0;
 }
 
+.internal-window:active .internal-window-titlebar {
+    -fx-background-color: #3C3C3C, linear-gradient(#E0E0E0 10%, #C3C3C3 30%, #E0E0E0 100%);
+    -fx-border-color: transparent transparent #C4C4C4 transparent;
+}
+
 .internal-window-titlebar-title {
     -fx-font-weight: bold;
     -fx-text-fill: black;

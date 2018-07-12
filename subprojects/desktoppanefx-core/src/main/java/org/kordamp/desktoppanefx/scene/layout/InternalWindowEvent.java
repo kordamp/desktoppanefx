@@ -23,6 +23,7 @@ import javafx.event.EventType;
  * @author Andres Almiray
  */
 public class InternalWindowEvent extends Event {
+    public static final EventType<InternalWindowEvent> EVENT_OPENED = new EventType<>(ANY, "EVENT_OPENED");
     public static final EventType<InternalWindowEvent> EVENT_CLOSED = new EventType<>(ANY, "EVENT_CLOSED");
     public static final EventType<InternalWindowEvent> EVENT_MINIMIZED = new EventType<>(ANY, "EVENT_MINIMIZED");
     public static final EventType<InternalWindowEvent> EVENT_MAXIMIZED = new EventType<>(ANY, "EVENT_MAXIMIZED");
