@@ -20,6 +20,7 @@ import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.MouseEvent;
@@ -44,16 +45,17 @@ public class TaskBarIcon extends Button {
         this.icon = internalWindow.getIcon();
         this.desktopPane = internalWindow.getDesktopPane();
 
-        HBox hBox = new HBox();
-        hBox.setStyle("-fx-alignment:center-left");
         getStyleClass().add("taskbar-icon");
-        hBox.setSpacing(10d);
-        hBox.setPadding(new Insets(0, 10, 0, 10));
+        setId(internalWindow.getId());
+        addEventHandler(MouseEvent.MOUSE_CLICKED, e -> restoreWindow());
+
+        HBox pane = new HBox();
+        pane.setStyle("-fx-alignment:center-left");
+        pane.setSpacing(10d);
+        pane.setPadding(new Insets(0, 10, 0, 10));
 
         lblTitle = new Label();
         lblTitle.textProperty().bind(internalWindow.titleProperty());
-        addEventHandler(MouseEvent.MOUSE_CLICKED, e -> restoreWindow());
-        setId(internalWindow.getId());
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
         btnClose.visibleProperty().bind(closeVisibleProperty());
@@ -74,8 +76,9 @@ public class TaskBarIcon extends Button {
             removeIcon();
         });
 
-        hBox.getChildren().addAll(icon, lblTitle, btnClose);
-        setGraphic(hBox);
+        pane.getChildren().addAll(icon, lblTitle, btnClose);
+        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        setGraphic(pane);
     }
 
     public final InternalWindow getInternalWindow() {

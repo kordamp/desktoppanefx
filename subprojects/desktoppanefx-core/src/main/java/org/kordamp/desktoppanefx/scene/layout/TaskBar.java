@@ -30,13 +30,13 @@ import javafx.scene.layout.HBox;
  * @author Andres Almiray
  */
 public class TaskBar {
-    private final static int TASKBAR_HEIGHT_WITHOUT_SCROLL = 44;
+    private final static int TASKBAR_HEIGHT_WITHOUT_SCROLL = 46;
     private final static int TASKBAR_HEIGHT_WITH_SCROLL = TASKBAR_HEIGHT_WITHOUT_SCROLL + 20;
 
     private final ScrollPane taskBar;
     private final HBox taskBarContentPane;
     private final ObservableList<TaskBarIcon> icons = FXCollections.observableArrayList();
-    private final ObservableList<TaskBarIcon> unmodifieableIcons = FXCollections.unmodifiableObservableList(icons);
+    private final ObservableList<TaskBarIcon> unmodifiableIcons = FXCollections.unmodifiableObservableList(icons);
 
     private final ObjectProperty<Position> position = new SimpleObjectProperty<>(this, "position", Position.BOTTOM);
     private final BooleanProperty visible = new SimpleBooleanProperty(this, "visible", true);
@@ -79,7 +79,7 @@ public class TaskBar {
     }
 
     public ObservableList<TaskBarIcon> getTaskBarIcons() {
-        return unmodifieableIcons;
+        return unmodifiableIcons;
     }
 
     ScrollPane getTaskBar() {
