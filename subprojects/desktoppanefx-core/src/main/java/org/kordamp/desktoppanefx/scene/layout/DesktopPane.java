@@ -64,14 +64,11 @@ public class DesktopPane extends BorderPane {
     private final EventHandler<InternalWindowEvent> windowMinimized = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
-            InternalWindow internalWindow = (InternalWindow) event.getTarget();
+            InternalWindow internalWindow = event.getInternalWindow();
             String id = internalWindow.getId();
             if (!findTaskBarIcon(id).isPresent()) {
                 try {
-                    TaskBarIcon icon = new TaskBarIcon(event.getInternalWindow().getIcon(), DesktopPane.this, internalWindow.getTitle());
-                    icon.setId(internalWindow.getId());
-                    icon.disableCloseProperty().bind(internalWindow.disableCloseProperty());
-                    taskBar.addTaskBarIcon(icon);
+                    taskBar.addTaskBarIcon(createTaskBarIcon(internalWindow));
                     selectActiveWindow();
                 } catch (Exception ex) {
                     Logger.getLogger(DesktopPane.class.getName()).log(Level.SEVERE, null, ex);
@@ -105,6 +102,10 @@ public class DesktopPane extends BorderPane {
                     setBottom(taskBar.getTaskBar());
             }
         });
+    }
+
+    protected TaskBarIcon createTaskBarIcon(InternalWindow internalWindow) {
+        return new TaskBarIcon(internalWindow);
     }
 
     protected void setActiveWindow(InternalWindow nextWindow) {

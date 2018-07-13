@@ -16,8 +16,6 @@
 package org.kordamp.desktoppanefx.scene.layout;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -36,18 +34,15 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
 public class TaskBarIcon extends Button {
     private final Button btnClose;
     private final Label lblTitle;
+    private final InternalWindow internalWindow;
     private final DesktopPane desktopPane;
     private Node icon;
 
-    private final BooleanProperty closeVisible = new SimpleBooleanProperty(this, "closeVisible", true);
-    private final BooleanProperty disableClose = new SimpleBooleanProperty(this, "disableClose", false);
-
-    private final StringProperty title = new SimpleStringProperty(this, "title", "");
-
-    public TaskBarIcon(Node icon, DesktopPane desktopPane, String title) {
+    public TaskBarIcon(InternalWindow internalWindow) {
         super();
-        this.icon = icon;
-        this.desktopPane = desktopPane;
+        this.internalWindow = internalWindow;
+        this.icon = internalWindow.getIcon();
+        this.desktopPane = internalWindow.getDesktopPane();
 
         HBox hBox = new HBox();
         hBox.setStyle("-fx-alignment:center-left");
@@ -57,13 +52,14 @@ public class TaskBarIcon extends Button {
 
         lblTitle = new Label();
         lblTitle.textProperty().bind(titleProperty());
-        setTitle(title);
+        setTitle(internalWindow.getTitle());
         addEventHandler(MouseEvent.MOUSE_CLICKED, e -> restoreWindow());
+        setId(internalWindow.getId());
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
-        btnClose.visibleProperty().bind(closeVisible);
-        btnClose.managedProperty().bind(closeVisible);
-        btnClose.disableProperty().bind(disableClose);
+        btnClose.visibleProperty().bind(closeVisibleProperty());
+        btnClose.managedProperty().bind(closeVisibleProperty());
+        btnClose.disableProperty().bind(disableCloseProperty());
         btnClose.getStyleClass().add("taskbar-icon-button");
 
         //Adding the shadow when the mouse cursor is on
@@ -83,18 +79,18 @@ public class TaskBarIcon extends Button {
         setGraphic(hBox);
     }
 
-    public void restoreWindow() {
-        desktopPane.findInternalWindow(getId()).ifPresent(internalWindow -> {
-            removeIcon();
-            internalWindow.setIcon(icon);
-            internalWindow.maximizeOrRestoreWindow();
+    public final InternalWindow getInternalWindow() {
+        return internalWindow;
+    }
 
-        });
+    public void restoreWindow() {
+        removeIcon();
+        internalWindow.setIcon(icon);
+        internalWindow.maximizeOrRestoreWindow();
     }
 
     private void removeInternalWindow() {
-        desktopPane.findInternalWindow(getId())
-            .ifPresent(desktopPane::removeInternalWindow);
+        desktopPane.removeInternalWindow(internalWindow);
     }
 
     private void removeIcon() {
@@ -103,38 +99,38 @@ public class TaskBarIcon extends Button {
     }
 
     public boolean isCloseVisible() {
-        return closeVisible.get();
+        return internalWindow.isCloseVisible();
     }
 
     public BooleanProperty closeVisibleProperty() {
-        return closeVisible;
+        return internalWindow.closeVisibleProperty();
     }
 
     public void setCloseVisible(boolean closeVisible) {
-        this.closeVisible.set(closeVisible);
+        internalWindow.setCloseVisible(closeVisible);
     }
 
     public boolean isDisableClose() {
-        return disableClose.get();
+        return internalWindow.isDisableClose();
     }
 
     public BooleanProperty disableCloseProperty() {
-        return disableClose;
+        return internalWindow.disableCloseProperty();
     }
 
     public void setDisableClose(boolean disableClose) {
-        this.disableClose.set(disableClose);
+        internalWindow.setDisableClose(disableClose);
     }
 
     public String getTitle() {
-        return title.get();
+        return internalWindow.getTitle();
     }
 
     public StringProperty titleProperty() {
-        return title;
+        return internalWindow.titleProperty();
     }
 
     public void setTitle(String title) {
-        this.title.set(title);
+        internalWindow.setTitle(title);
     }
 }
