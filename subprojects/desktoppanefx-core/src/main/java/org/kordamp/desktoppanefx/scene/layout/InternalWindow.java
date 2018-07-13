@@ -386,6 +386,7 @@ public class InternalWindow extends BorderPane {
     private Pane makeContentPane(Node content) {
         this.content = content;
         AnchorPane paneContent = new AnchorPane(content);
+        paneContent.getStyleClass().add("internal-window-content");
         content.setStyle("-fx-background-color: #F9F9F9; -fx-border-color: #F2F2F2");
         AnchorPane.setBottomAnchor(content, 0d);
         AnchorPane.setLeftAnchor(content, 0d);

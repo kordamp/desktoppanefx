@@ -51,8 +51,7 @@ public class TaskBarIcon extends Button {
         hBox.setPadding(new Insets(0, 10, 0, 10));
 
         lblTitle = new Label();
-        lblTitle.textProperty().bind(titleProperty());
-        setTitle(internalWindow.getTitle());
+        lblTitle.textProperty().bind(internalWindow.titleProperty());
         addEventHandler(MouseEvent.MOUSE_CLICKED, e -> restoreWindow());
         setId(internalWindow.getId());
 
