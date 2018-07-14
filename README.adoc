@@ -18,6 +18,8 @@ JDesktopPaneFX is a JavaFX version of Swing's JDesktopPane which can be used as 
 
 This project started as a fork of link:https://github.com/lincolnminto/javaFXMDI[JavaFXMDI] authored by Lincoln Minto.
 
+image::screenshots/desktoppanefx.png[]
+
 == Installing
 
 You can get the latest version of **DesktopPaneFX** directly from link:https://bintray.com[Bintray's JCenter] repository
@@ -50,7 +52,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import org.kordamp.desktoppanefx.scene.layout.DesktopPane;
 import org.kordamp.desktoppanefx.scene.layout.InternalWindow;
@@ -66,19 +68,16 @@ public class Example extends Application {
         newWindow.setOnAction(e -> {
             InternalWindow window = new InternalWindow(
                 "window-" + count,
-                new FontIcon("mdi-application:20:RED"),
+                new FontIcon("mdi-application:20"),
                 "Title " + count++,
                 new Label("Content"));
             desktopPane.addInternalWindow(window);
         });
 
-        AnchorPane mainPane = new AnchorPane();
+        BorderPane mainPane = new BorderPane();
         mainPane.setPrefSize(800, 600);
-        javafx.scene.layout.AnchorPane.setBottomAnchor(desktopPane, 0d);
-        javafx.scene.layout.AnchorPane.setLeftAnchor(desktopPane, 0d);
-        javafx.scene.layout.AnchorPane.setTopAnchor(desktopPane, 25d);//Button place
-        javafx.scene.layout.AnchorPane.setRightAnchor(desktopPane, 0d);
-        mainPane.getChildren().addAll(desktopPane, newWindow);
+        mainPane.setTop(newWindow);
+        mainPane.setCenter(desktopPane);
 
         stage.setScene(new Scene(mainPane));
         stage.show();
