@@ -74,6 +74,7 @@ public class TaskBarIcon extends Button {
         btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
             removeInternalWindow();
             removeIcon();
+            desktopPane.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.EVENT_CLOSED));
         });
 
         pane.getChildren().addAll(icon, lblTitle, btnClose);
