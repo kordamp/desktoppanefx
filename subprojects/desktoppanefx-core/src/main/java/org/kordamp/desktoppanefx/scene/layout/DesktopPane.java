@@ -348,7 +348,7 @@ public class DesktopPane extends BorderPane {
 
         @Override
         public void changed(ObservableValue<? extends Bounds> observable, Bounds oldValue, Bounds newValue) {
-            this.desktopPane.centerInternalWindow(this.window);
+            desktopPane.centerInternalWindow(this.window);
             observable.removeListener(this);
         }
     }
