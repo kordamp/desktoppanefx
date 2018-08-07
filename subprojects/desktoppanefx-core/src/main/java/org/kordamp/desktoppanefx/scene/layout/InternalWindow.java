@@ -270,10 +270,10 @@ public class InternalWindow extends BorderPane {
         this.active.set(active);
     }
 
-    private void init(String mdiWindowID, Node icon, String title, Node content) {
-        setId(mdiWindowID);
+    private void init(String windowId, Node icon, String title, Node content) {
+        setId(windowId);
         moveListener();
-        setOnMouseClicked((MouseEvent t) -> toFront());
+        setOnMouseClicked(event -> toFront());
 
         setPrefSize(200, 200);
         getStyleClass().add("internal-window");
@@ -282,10 +282,10 @@ public class InternalWindow extends BorderPane {
 
         detachedWindow = new Stage();
         detachedWindow.setScene(new Scene(new BorderPane()));
-        detachedWindow.focusedProperty().addListener((v, o, n) -> setActive(n));
         detachedWindow.initStyle(StageStyle.UNDECORATED);
 
-        showingBinding = createBooleanBinding(() -> isVisible() | detachedWindow.isShowing(), visibleProperty(), detachedWindow.showingProperty());
+        showingBinding = createBooleanBinding(() -> isVisible() | detachedWindow.isShowing(),
+            visibleProperty(), detachedWindow.showingProperty());
 
         updateStyle(ACTIVE_CLASS, true);
         activeProperty().addListener((observable, oldValue, newValue) -> updateStyle(ACTIVE_CLASS, newValue));
@@ -411,12 +411,21 @@ public class InternalWindow extends BorderPane {
     private void maximizeWindow(boolean recordSizes) {
         if (recordSizes) {
             captureDetachedWindowBounds();
-            previousWidth = getWidth();
+            // previousWidth = getWidth();
         }
-        detachedWindow.setMaximized(true);
+        maximizeDetachedWindow();
+
         maximized.set(true);
         wasMaximized = false;
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_MAXIMIZED));
+    }
+
+    private void maximizeDetachedWindow() {
+        Screen screen = resolveScreen();
+        detachedWindow.setX(0);
+        detachedWindow.setY(titleBar.getHeight());
+        detachedWindow.setWidth(screen.getBounds().getWidth());
+        detachedWindow.setHeight(screen.getBounds().getHeight() - titleBar.getHeight());
     }
 
     private void restoreWindow() {
@@ -425,7 +434,6 @@ public class InternalWindow extends BorderPane {
         detachedWindow.setWidth(previousWidth);
         detachedWindow.setHeight(previousHeight);
 
-        detachedWindow.setMaximized(false);
         maximized.set(false);
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_RESTORED));
     }
@@ -563,7 +571,8 @@ public class InternalWindow extends BorderPane {
                 resizeMode = ResizeMode.BOTTOM_LEFT;
                 resizeLeft = true;
                 resizeBottom = true;
-            } else */if (right1 && !top1 && !bottom1) {
+            } else */
+            if (right1 && !top1 && !bottom1) {
                 if (isResizable()) {
                     setCursor(Cursor.E_RESIZE);
                 }
@@ -576,7 +585,7 @@ public class InternalWindow extends BorderPane {
                 resizeMode = ResizeMode.TOP_RIGHT;
                 resizeRight = true;
                 resizeTop = true;
-            } */else if (right1 && !top1 && bottom1) {
+            } */ else if (right1 && !top1 && bottom1) {
                 if (isResizable()) {
                     setCursor(Cursor.SE_RESIZE);
                 }
@@ -589,7 +598,7 @@ public class InternalWindow extends BorderPane {
                 }
                 resizeMode = ResizeMode.TOP;
                 resizeTop = true;
-            } */else if (bottom1 && !left1 && !right1) {
+            } */ else if (bottom1 && !left1 && !right1) {
                 if (isResizable()) {
                     setCursor(Cursor.S_RESIZE);
                 }
@@ -681,7 +690,7 @@ public class InternalWindow extends BorderPane {
             bp.setTop(titleBar);
             bp.setCenter(contentPane);
             detachedWindow.getScene().setRoot(bp);
-            detachedWindow.sizeToScene();
+            //detachedWindow.sizeToScene();
 
             detachedWindow.addEventHandler(MouseEvent.MOUSE_PRESSED, windowMousePressed);
             detachedWindow.addEventHandler(MouseEvent.MOUSE_MOVED, windowMouseMoved);
@@ -689,10 +698,11 @@ public class InternalWindow extends BorderPane {
 
             detachedWindow.setX(locationOnScreen.getX());
             detachedWindow.setY(locationOnScreen.getY());
+
             detachedWindow.show();
 
             if (isMaximized()) {
-                detachedWindow.setMaximized(true);
+                maximizeDetachedWindow();
             } else {
                 bp.setMaxWidth(getMaxWidth());
                 bp.setMaxHeight(getMaxHeight());
@@ -740,6 +750,15 @@ public class InternalWindow extends BorderPane {
         AnchorPane.setTopAnchor(this, 0d);
         AnchorPane.setLeftAnchor(this, 0d);
         AnchorPane.setRightAnchor(this, 0d);
+    }
+
+    private Screen resolveScreen() {
+        double newX = detachedWindow.getX(),
+            newY = detachedWindow.getY(),
+            newWidth = detachedWindow.getWidth(),
+            newHeight = detachedWindow.getHeight();
+
+        return Screen.getScreensForRectangle(newX, newY, newWidth, newHeight).get(0);
     }
 
     enum ResizeMode {
