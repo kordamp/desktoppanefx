@@ -1,0 +1,279 @@
+/*
+ * Copyright 2015-2018 The original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.kordamp.desktoppanefx.scene.layout;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.materialdesign.MaterialDesign;
+
+/**
+ * @author Andres Almiray
+ */
+public class TitleBar extends AnchorPane {
+    private final InternalWindow internalWindow;
+    private Pane titlePane;
+
+    private Node icon;
+    private Label lblTitle;
+    private Button btnClose;
+    private Button btnMinimize;
+    private Button btnMaximize;
+    private Button btnDetach;
+
+    private boolean disableResize = false;
+
+    private final BooleanProperty minimizeVisible = new SimpleBooleanProperty(this, "minimizeVisible", true);
+    private final BooleanProperty maximizeVisible = new SimpleBooleanProperty(this, "maximizeVisible", true);
+    private final BooleanProperty closeVisible = new SimpleBooleanProperty(this, "closeVisible", true);
+    private final BooleanProperty detachVisible = new SimpleBooleanProperty(this, "detachVisible", true);
+
+    private final BooleanProperty disableMinimize = new SimpleBooleanProperty(this, "disableMinimize", false);
+    private final BooleanProperty disableMaximize = new SimpleBooleanProperty(this, "disableMaximize", false);
+    private final BooleanProperty disableClose = new SimpleBooleanProperty(this, "disableClose", false);
+    private final BooleanProperty disableDetach = new SimpleBooleanProperty(this, "disableDetach", false);
+
+    private final StringProperty title = new SimpleStringProperty(this, "title", "");
+
+    public TitleBar(InternalWindow internalWindow, Node icon, String title) {
+        this.internalWindow = internalWindow;
+        this.icon = icon;
+
+        setPrefHeight(32);
+        getStyleClass().add("internal-window-titlebar");
+
+        titlePane = makeTitlePane(title);
+        getChildren().add(titlePane);
+        setPadding(new Insets(0, 11, 0, 0));
+
+        btnDetach = new Button("", new FontIcon(resolveDetachIcon()));
+        btnDetach.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnDetach.getStyleClass().add("internal-window-titlebar-button");
+        btnDetach.visibleProperty().bind(detachVisible);
+        btnDetach.managedProperty().bind(detachVisible);
+        btnDetach.disableProperty().bind(disableDetach);
+        btnDetach.setOnMouseClicked(e -> internalWindow.detachOrAttachWindow());
+        internalWindow.detachedProperty().addListener((v, o, n) -> btnDetach.setGraphic(new FontIcon(resolveDetachIcon())));
+
+        btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
+        btnClose.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnClose.getStyleClass().add("internal-window-titlebar-button");
+        btnClose.visibleProperty().bind(closeVisible);
+        btnClose.managedProperty().bind(closeVisible);
+        btnClose.disableProperty().bind(disableClose);
+        btnClose.setOnMouseClicked(e -> internalWindow.closeWindow());
+
+        btnMinimize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MINIMIZE));
+        btnMinimize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnMinimize.getStyleClass().add("internal-window-titlebar-button");
+        btnMinimize.visibleProperty().bind(minimizeVisible);
+        btnMinimize.managedProperty().bind(minimizeVisible);
+        btnMinimize.disableProperty().bind(disableMinimize);
+        btnMinimize.setOnMouseClicked(e -> internalWindow.minimizeWindow());
+
+        btnMaximize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
+        btnMaximize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnMaximize.getStyleClass().add("internal-window-titlebar-button");
+        btnMaximize.visibleProperty().bind(maximizeVisible);
+        btnMaximize.managedProperty().bind(maximizeVisible);
+        btnMaximize.disableProperty().bind(disableMaximize);
+        btnMaximize.setOnMouseClicked(e -> internalWindow.maximizeOrRestoreWindow());
+
+        if (!disableResize) {
+            // getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));
+            getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
+            //double click on title bar
+            setOnMouseClicked((MouseEvent event) -> {
+                if (event.getClickCount() == 2) {
+                    internalWindow.maximizeOrRestoreWindow();
+                }
+            });
+        } else {
+            // getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
+            getChildren().add(makeControls(btnMinimize, btnClose));
+        }
+
+        internalWindow.maximizedProperty().addListener((v, o, n) -> ((FontIcon) btnMaximize.getGraphic()).setIconCode(n ?
+            MaterialDesign.MDI_WINDOW_RESTORE :
+            MaterialDesign.MDI_WINDOW_MAXIMIZE));
+    }
+
+    private Pane makeTitlePane(String title) {
+        HBox hbLeft = new HBox();
+        hbLeft.setSpacing(10d);
+        lblTitle = new Label();
+        lblTitle.textProperty().bind(titleProperty());
+        setTitle(title);
+        lblTitle.getStyleClass().add("internal-window-titlebar-title");
+
+        if (icon != null) { hbLeft.getChildren().add(icon); }
+        hbLeft.getChildren().add(lblTitle);
+        hbLeft.setAlignment(Pos.CENTER_LEFT);
+        AnchorPane.setLeftAnchor(hbLeft, 10d);
+        AnchorPane.setBottomAnchor(hbLeft, 0d);
+        AnchorPane.setRightAnchor(hbLeft, 20d);
+        AnchorPane.setTopAnchor(hbLeft, 0d);
+        return hbLeft;
+    }
+
+    private HBox makeControls(Node... nodes) {
+        HBox hbRight = new HBox();
+        hbRight.getChildren().addAll(nodes);
+        hbRight.setAlignment(Pos.CENTER_RIGHT);
+        AnchorPane.setBottomAnchor(hbRight, 0d);
+        AnchorPane.setRightAnchor(hbRight, 0d);
+        AnchorPane.setTopAnchor(hbRight, 0d);
+        return hbRight;
+    }
+
+    private Ikon resolveDetachIcon() {
+        return internalWindow.isDetached() ? MaterialDesign.MDI_ARROW_DOWN_BOLD : MaterialDesign.MDI_ARROW_UP_BOLD;
+    }
+
+    public Node getIcon() {
+        return icon;
+    }
+
+    public void setIcon(Node icon) {
+        this.icon = icon;
+        if (titlePane.getChildren().size() == 1) {
+            titlePane.getChildren().add(0, icon);
+        } else {
+            titlePane.getChildren().set(0, icon);
+        }
+    }
+
+    public String getTitle() {
+        return title.get();
+    }
+
+    public StringProperty titleProperty() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title.set(title);
+    }
+
+    public boolean isMinimizeVisible() {
+        return minimizeVisible.get();
+    }
+
+    public BooleanProperty minimizeVisibleProperty() {
+        return minimizeVisible;
+    }
+
+    public void setMinimizeVisible(boolean minimizeVisible) {
+        this.minimizeVisible.set(minimizeVisible);
+    }
+
+    public boolean isMaximizeVisible() {
+        return maximizeVisible.get();
+    }
+
+    public BooleanProperty maximizeVisibleProperty() {
+        return maximizeVisible;
+    }
+
+    public void setMaximizeVisible(boolean maximizeVisible) {
+        this.maximizeVisible.set(maximizeVisible);
+    }
+
+    public boolean isCloseVisible() {
+        return closeVisible.get();
+    }
+
+    public BooleanProperty closeVisibleProperty() {
+        return closeVisible;
+    }
+
+    public void setCloseVisible(boolean closeVisible) {
+        this.closeVisible.set(closeVisible);
+    }
+
+    public boolean isDetachVisible() {
+        return detachVisible.get();
+    }
+
+    public BooleanProperty detachVisibleProperty() {
+        return detachVisible;
+    }
+
+    public void setDetachVisible(boolean detachVisible) {
+        this.detachVisible.set(detachVisible);
+    }
+
+    public boolean isDisableMinimize() {
+        return disableMinimize.get();
+    }
+
+    public BooleanProperty disableMinimizeProperty() {
+        return disableMinimize;
+    }
+
+    public void setDisableMinimize(boolean disableMinimize) {
+        this.disableMinimize.set(disableMinimize);
+    }
+
+    public boolean isDisableMaximize() {
+        return disableMaximize.get();
+    }
+
+    public BooleanProperty disableMaximizeProperty() {
+        return disableMaximize;
+    }
+
+    public void setDisableMaximize(boolean disableMaximize) {
+        this.disableMaximize.set(disableMaximize);
+    }
+
+    public boolean isDisableClose() {
+        return disableClose.get();
+    }
+
+    public BooleanProperty disableCloseProperty() {
+        return disableClose;
+    }
+
+    public void setDisableClose(boolean disableClose) {
+        this.disableClose.set(disableClose);
+    }
+
+    public boolean isDisableDetach() {
+        return disableDetach.get();
+    }
+
+    public BooleanProperty disableDetachProperty() {
+        return disableDetach;
+    }
+
+    public void setDisableDetach(boolean disableDetach) {
+        this.disableDetach.set(disableDetach);
+    }
+}

@@ -42,7 +42,7 @@ public class TaskBarIcon extends Button {
     public TaskBarIcon(InternalWindow internalWindow) {
         super();
         this.internalWindow = internalWindow;
-        this.icon = internalWindow.getIcon();
+        this.icon = internalWindow.getTitleBar().getIcon();
         this.desktopPane = internalWindow.getDesktopPane();
 
         getStyleClass().add("taskbar-icon");
@@ -55,7 +55,7 @@ public class TaskBarIcon extends Button {
         pane.setPadding(new Insets(0, 10, 0, 10));
 
         lblTitle = new Label();
-        lblTitle.textProperty().bind(internalWindow.titleProperty());
+        lblTitle.textProperty().bind(internalWindow.getTitleBar().titleProperty());
 
         btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
         btnClose.visibleProperty().bind(closeVisibleProperty());
@@ -88,7 +88,7 @@ public class TaskBarIcon extends Button {
 
     public void restoreWindow() {
         removeIcon();
-        internalWindow.setIcon(icon);
+        internalWindow.getTitleBar().setIcon(icon);
         internalWindow.maximizeOrRestoreWindow();
     }
 
@@ -102,38 +102,38 @@ public class TaskBarIcon extends Button {
     }
 
     public boolean isCloseVisible() {
-        return internalWindow.isCloseVisible();
+        return internalWindow.getTitleBar().isCloseVisible();
     }
 
     public BooleanProperty closeVisibleProperty() {
-        return internalWindow.closeVisibleProperty();
+        return internalWindow.getTitleBar().closeVisibleProperty();
     }
 
     public void setCloseVisible(boolean closeVisible) {
-        internalWindow.setCloseVisible(closeVisible);
+        internalWindow.getTitleBar().setCloseVisible(closeVisible);
     }
 
     public boolean isDisableClose() {
-        return internalWindow.isDisableClose();
+        return internalWindow.getTitleBar().isDisableClose();
     }
 
     public BooleanProperty disableCloseProperty() {
-        return internalWindow.disableCloseProperty();
+        return internalWindow.getTitleBar().disableCloseProperty();
     }
 
     public void setDisableClose(boolean disableClose) {
-        internalWindow.setDisableClose(disableClose);
+        internalWindow.getTitleBar().setDisableClose(disableClose);
     }
 
     public String getTitle() {
-        return internalWindow.getTitle();
+        return internalWindow.getTitleBar().getTitle();
     }
 
     public StringProperty titleProperty() {
-        return internalWindow.titleProperty();
+        return internalWindow.getTitleBar().titleProperty();
     }
 
     public void setTitle(String title) {
-        internalWindow.setTitle(title);
+        internalWindow.getTitleBar().setTitle(title);
     }
 }

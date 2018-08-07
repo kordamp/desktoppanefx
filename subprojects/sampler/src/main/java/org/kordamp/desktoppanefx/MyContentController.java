@@ -154,7 +154,7 @@ public class MyContentController implements Initializable {
     private void btnDisableEnableCloseHandler() {
         btnDisableEnableClose.setOnAction(e -> {
             InternalWindow myMDI = resolveInternalWindow(mainPane);
-            myMDI.setDisableClose(!myMDI.isDisableClose());
+            myMDI.getTitleBar().setDisableClose(!myMDI.getTitleBar().isDisableClose());
         });
     }
 }
