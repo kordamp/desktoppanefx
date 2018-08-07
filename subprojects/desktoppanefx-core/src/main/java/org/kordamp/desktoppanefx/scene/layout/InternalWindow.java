@@ -62,10 +62,11 @@ public class InternalWindow extends BorderPane {
     private Node content;
 
     private InternalWindow.ResizeMode resizeMode;
-    private boolean resizeTop;
     private boolean resize;
+    private boolean resizeTop;
     private boolean resizeBottom;
     private boolean resizeRight;
+    private boolean resizeLeft;
     private double previousWidth;
     private double previousHeight;
     private double previousY;
@@ -442,15 +443,15 @@ public class InternalWindow extends BorderPane {
     }
 
     private void moveListener() {
-        setOnMouseDragged((MouseEvent dragEvent) -> {
+        setOnMouseDragged((MouseEvent event) -> {
             if (!isMaximized()) {
                 //Move
-                x += dragEvent.getSceneX() - mousex;
-                y += dragEvent.getSceneY() - mousey;
+                x += event.getSceneX() - mousex;
+                y += event.getSceneY() - mousey;
                 //again set current Mouse x AND y position
-                mousex = dragEvent.getSceneX();
-                mousey = dragEvent.getSceneY();
-                if (resizeMode == resizeMode.NONE) {
+                mousex = event.getSceneX();
+                mousey = event.getSceneY();
+                if (resizeMode == resizeMode.NONE && isContainedInHierarchy(titleBar, (Node) event.getTarget())) {
                     //set the position of Node after calculation
                     if (getWidth() < getParent().getLayoutBounds().getWidth()) {//if the panel is not biger then the window: Move
                         setLayoutX(x);
@@ -477,32 +478,32 @@ public class InternalWindow extends BorderPane {
                         //RIGHT AND DOWN
                         //Only the Right Resize
                         if (resizeRight && !resizeTop && !resizeBottom) {
-                            if (dragEvent.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())) {
-                                setPrefWidth(dragEvent.getX());
+                            if (event.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())) {
+                                setPrefWidth(event.getX());
                             } else {
                                 setPrefWidth(getParent().getLayoutBounds().getWidth() - getLayoutX());
                             }
                         } //Only The Bottom Resize
                         else if (!resizeRight && !resizeTop && resizeBottom) {
-                            if (dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
-                                setPrefHeight(dragEvent.getY());
+                            if (event.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
+                                setPrefHeight(event.getY());
                             } else {
                                 setPrefHeight(getParent().getLayoutBounds().getHeight() - getLayoutY());
                             }
                         } //Only The Bottom with Right Resize
                         else if ((resizeRight && !resizeTop && resizeBottom)) {
-                            if (dragEvent.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())
-                                && dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
-                                setPrefWidth(dragEvent.getX());
-                                setPrefHeight(dragEvent.getY());
+                            if (event.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())
+                                && event.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
+                                setPrefWidth(event.getX());
+                                setPrefHeight(event.getY());
                             } else {
-                                if (dragEvent.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())) {
-                                    setPrefWidth(dragEvent.getX());
+                                if (event.getX() <= (getParent().getLayoutBounds().getWidth() - getLayoutX())) {
+                                    setPrefWidth(event.getX());
                                 } else {
                                     setPrefWidth(getParent().getLayoutBounds().getWidth() - getLayoutX());
                                 }
-                                if (dragEvent.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
-                                    setPrefHeight(dragEvent.getY());
+                                if (event.getY() <= (getParent().getLayoutBounds().getHeight() - getLayoutY())) {
+                                    setPrefHeight(event.getY());
                                 } else {
                                     setPrefHeight(getParent().getLayoutBounds().getHeight() - getLayoutY());
                                 }
@@ -525,14 +526,14 @@ public class InternalWindow extends BorderPane {
             y = getLayoutY();
         });
 
-        onMouseMovedProperty().set((MouseEvent t) -> {
+        onMouseMovedProperty().set((MouseEvent event) -> {
             final double scaleX = localToSceneTransformProperty().getValue().getMxx();
             final double scaleY = localToSceneTransformProperty().getValue().getMyy();
             final double border1 = 5;
-            double diffMinX = Math.abs(getBoundsInLocal().getMinX() - t.getX());
-            double diffMinY = Math.abs(getBoundsInLocal().getMinY() - t.getY());
-            double diffMaxX = Math.abs(getBoundsInLocal().getMaxX() - t.getX());
-            double diffMaxY = Math.abs(getBoundsInLocal().getMaxY() - t.getY());
+            double diffMinX = Math.abs(getBoundsInLocal().getMinX() - event.getX());
+            double diffMinY = Math.abs(getBoundsInLocal().getMinY() - event.getY());
+            double diffMaxX = Math.abs(getBoundsInLocal().getMaxX() - event.getX());
+            double diffMaxY = Math.abs(getBoundsInLocal().getMaxY() - event.getY());
             boolean left1 = diffMinX * scaleX < border1;
             boolean top1 = diffMinY * scaleY < border1;
             boolean right1 = diffMaxX * scaleX < border1;
@@ -541,26 +542,54 @@ public class InternalWindow extends BorderPane {
             resize = false;
             resizeBottom = false;
             resizeRight = false;
+
             /*if (left1 && !top1 && !bottom1) {
+                if (isResizable()) {
+                    setCursor(Cursor.W_RESIZE);
+                }
+                resizeMode = ResizeMode.LEFT;
+                resizeLeft = true;
             } else if (left1 && top1 && !bottom1) {
+                if (isResizable()) {
+                    setCursor(Cursor.NW_RESIZE);
+                }
+                resizeMode = ResizeMode.TOP_LEFT;
+                resizeLeft = true;
+                resizeTop = true;
             } else if (left1 && !top1 && bottom1) {
-            } else*/
-            if (right1 && !top1 && !bottom1) {
+                if (isResizable()) {
+                    setCursor(Cursor.SW_RESIZE);
+                }
+                resizeMode = ResizeMode.BOTTOM_LEFT;
+                resizeLeft = true;
+                resizeBottom = true;
+            } else */if (right1 && !top1 && !bottom1) {
                 if (isResizable()) {
                     setCursor(Cursor.E_RESIZE);
                 }
                 resizeMode = ResizeMode.RIGHT;
                 resizeRight = true;
-                //} else if (right1 && top1 && !bottom1) {
-            } else if (right1 && !top1 && bottom1) {
+            } /*else if (right1 && top1 && !bottom1) {
+                if (isResizable()) {
+                    setCursor(Cursor.NE_RESIZE);
+                }
+                resizeMode = ResizeMode.TOP_RIGHT;
+                resizeRight = true;
+                resizeTop = true;
+            } */else if (right1 && !top1 && bottom1) {
                 if (isResizable()) {
                     setCursor(Cursor.SE_RESIZE);
                 }
                 resizeMode = ResizeMode.BOTTOM_RIGHT;
                 resizeRight = true;
                 resizeBottom = true;
-                //} else if (top1 && !left1 && !right1) {
-            } else if (bottom1 && !left1 && !right1) {
+            } /*else if (top1 && !left1 && !right1) {
+                if (isResizable()) {
+                    setCursor(Cursor.N_RESIZE);
+                }
+                resizeMode = ResizeMode.TOP;
+                resizeTop = true;
+            } */else if (bottom1 && !left1 && !right1) {
                 if (isResizable()) {
                     setCursor(Cursor.S_RESIZE);
                 }
