@@ -4,7 +4,7 @@
 :project-repo:    kordamp
 :project-name:    desktoppanefx
 :project-group:   org.kordamp.desktoppanefx
-:project-version: 0.8.0
+:project-version: 0.9.0
 
 image:http://img.shields.io/travis/aalmiray/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/aalmiray/{project-name}"]
 image:http://img.shields.io/badge/license-ASL2-blue.svg["ASL2 Licensed", link="http://opensource.org/licenses/ASL2"]
@@ -85,12 +85,22 @@ public class Example extends Application {
 }
 ----
 
+== Incubating Features
+
+The following features can be activated by defining a System property with a `"true"` value:
+
+[cols="2*", header]
+|===
+| Property                         | Description
+| desktoppanefx.detachable.windows | `InternalWindow` may be detached/attached from/to a `DesktopPane`
+|===
+
 == Building
 
 You must meet the following requirements:
 
  * JDK8u40 as a minimum
- * Gradle 4.7
+ * Gradle 4.9
 
 You may used the included gradle wrapper script if you don't have `gradle` installed.
 
@@ -108,7 +118,7 @@ You may used the included gradle wrapper script if you don't have `gradle` insta
 
  . Follow the instructions found at http://sdkman.io/ to install SDKMAN.
  . You need a POSIX environment if running Windows. We recommend using Babun Shell (http://babun.github.io/)
- . Once SDKMAN is installed invoke `sdk install gradle 4.7`.
+ . Once SDKMAN is installed invoke `sdk install gradle 4.9`.
  . Test your setup by invoking `gradle --version`.
 
 .Gdub

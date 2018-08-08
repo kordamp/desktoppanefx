@@ -85,7 +85,6 @@ subprojects { subproj ->
     }
 
     if (subproj.name.contains('desktoppane')) {
-        apply from: rootProject.file('gradle/publishing.gradle')
 
         javadoc {
             excludes = ['**/*.html', 'META-INF/**']
@@ -122,6 +121,8 @@ subprojects { subproj ->
             sourcesJar
             javadocJar
         }
+
+        apply from: rootProject.file('gradle/publishing.gradle')
 
         dependencies {
             testCompile 'junit:junit:4.12'

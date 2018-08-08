@@ -1,3 +1,5 @@
+enableFeaturePreview('STABLE_PUBLISHING')
+
 rootProject.name = 'desktoppanefx'
 
 def includeProject = { String projectDirName, String projectName ->

@@ -105,9 +105,14 @@ public class TitleBar extends AnchorPane {
         btnMaximize.disableProperty().bind(disableMaximize);
         btnMaximize.setOnMouseClicked(e -> internalWindow.maximizeOrRestoreWindow());
 
+        boolean detachableWindows = Boolean.getBoolean(IncubatingFeatures.DETACHABLE_WINDOWS);
+
         if (!disableResize) {
-            // getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));
-            getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
+            if (detachableWindows) {
+                getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));
+            } else {
+                getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
+            }
             //double click on title bar
             setOnMouseClicked((MouseEvent event) -> {
                 if (event.getClickCount() == 2) {
@@ -115,8 +120,11 @@ public class TitleBar extends AnchorPane {
                 }
             });
         } else {
-            // getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
-            getChildren().add(makeControls(btnMinimize, btnClose));
+            if (detachableWindows) {
+                getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
+            } else {
+                getChildren().add(makeControls(btnMinimize, btnClose));
+            }
         }
 
         internalWindow.maximizedProperty().addListener((v, o, n) -> ((FontIcon) btnMaximize.getGraphic()).setIconCode(n ?

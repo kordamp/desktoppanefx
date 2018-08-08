@@ -282,7 +282,8 @@ public class InternalWindow extends BorderPane {
 
         detachedWindow = new Stage();
         detachedWindow.setScene(new Scene(new BorderPane()));
-        detachedWindow.initStyle(StageStyle.UNDECORATED);
+        detachedWindow.initStyle(StageStyle.TRANSPARENT);
+        detachedWindow.getScene().setFill(null);
 
         showingBinding = createBooleanBinding(() -> isVisible() | detachedWindow.isShowing(),
             visibleProperty(), detachedWindow.showingProperty());
