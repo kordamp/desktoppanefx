@@ -30,9 +30,13 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Lincoln Minto
@@ -117,6 +121,7 @@ public class DesktopPane extends BorderPane {
         if (nextWindow != null) {
             activeWindow.set(nextWindow);
             nextWindow.setActive(true);
+            nextWindow.moveToFront();
         }
     }
 
@@ -284,7 +289,6 @@ public class DesktopPane extends BorderPane {
 
         internalWindow.setLayoutX((int) point.getX());
         internalWindow.setLayoutY((int) point.getY());
-        //internalWindow.setVisible(true);
     }
 
     public void centerInternalWindow(InternalWindow internalWindow) {
@@ -370,5 +374,201 @@ public class DesktopPane extends BorderPane {
             activeWindow.set(nextWindow);
             nextWindow.setActive(true);
         }
+    }
+
+    // ------------------------------------------------------------------
+
+    public void minimizeAllWindows() {
+        getInternalWindows().forEach(InternalWindow::minimizeWindow);
+        setActiveWindow(null);
+    }
+
+    public void minimizeOtherWindows() {
+        InternalWindow currentWindow = getActiveWindow();
+
+        getInternalWindows().stream()
+            .filter(window -> !window.equals(currentWindow))
+            .forEach(InternalWindow::minimizeWindow);
+
+        setActiveWindow(currentWindow);
+    }
+
+    public void maximizeAllWindows() {
+        InternalWindow currentWindow = getActiveWindow();
+
+        restoreMinimizedWindows();
+        maximizeVisibleWindows();
+
+        setActiveWindow(currentWindow);
+    }
+
+    public void maximizeVisibleWindows() {
+        InternalWindow currentWindow = getActiveWindow();
+
+        getInternalWindows().stream()
+            .filter(window -> !window.isMinimized())
+            .filter(window -> !window.isMaximized())
+            .forEach(InternalWindow::maximizeOrRestoreWindow);
+
+        setActiveWindow(currentWindow);
+    }
+
+    public void restoreMinimizedWindows() {
+        InternalWindow currentWindow = getActiveWindow();
+
+        getInternalWindows().stream()
+            .filter(InternalWindow::isMinimized)
+            .forEach(window ->
+                findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::restoreWindow));
+
+        setActiveWindow(currentWindow);
+    }
+
+    public void restoreVisibleWindows() {
+        InternalWindow currentWindow = getActiveWindow();
+
+        getInternalWindows().stream()
+            .filter(window -> !window.isMinimized())
+            .filter(InternalWindow::isMaximized)
+            .forEach(InternalWindow::maximizeOrRestoreWindow);
+
+        setActiveWindow(currentWindow);
+    }
+
+    public void closeAllWindows() {
+        getInternalWindows().forEach(InternalWindow::closeWindow);
+        setActiveWindow(null);
+    }
+
+    public void closeOtherWindows() {
+        InternalWindow currentWindow = getActiveWindow();
+
+        getInternalWindows().stream()
+            .filter(window -> !window.equals(currentWindow))
+            .forEach(InternalWindow::closeWindow);
+
+        setActiveWindow(currentWindow);
+    }
+
+    public void tileAllWindows() {
+        tileAllWindows(-1, -1);
+    }
+
+    public void tileAllWindows(double windowWidth, double windowHeight) {
+        tileWindows(getInternalWindows(), windowWidth, windowHeight);
+    }
+
+    public void tileVisibleWindows() {
+        tileVisibleWindows(-1, -1);
+    }
+
+    public void tileVisibleWindows(double windowWidth, double windowHeight) {
+        tileWindows(getInternalWindows().stream()
+                .filter(window -> !window.isMinimized())
+                .collect(toList()),
+            windowWidth, windowHeight);
+    }
+
+    public void tileHorizontally() {
+        List<InternalWindow> windows = getInternalWindows().stream()
+            .filter(window -> !window.isMinimized())
+            .collect(toList());
+
+        double containerWidth = internalWindowContainer.getLayoutBounds().getWidth();
+        double containerHeight = internalWindowContainer.getLayoutBounds().getHeight();
+        double windowHeight = containerHeight / windows.size();
+
+        for (int i = 0; i < windows.size(); i++) {
+            InternalWindow window = windows.get(i);
+            if (window.isMaximized()) {
+                window.maximizeOrRestoreWindow();
+            }
+            window.setMinHeight(Math.min(window.getMinHeight(), windowHeight));
+            window.setPrefSize(containerWidth, windowHeight);
+            window.setLayoutX(0);
+            window.setLayoutY(windowHeight * i);
+            setActiveWindow(window);
+        }
+    }
+
+    public void tileVertically() {
+        List<InternalWindow> windows = getInternalWindows().stream()
+            .filter(window -> !window.isMinimized())
+            .collect(toList());
+
+        double containerWidth = internalWindowContainer.getLayoutBounds().getWidth();
+        double containerHeight = internalWindowContainer.getLayoutBounds().getHeight();
+        double windowWidth = containerWidth / windows.size();
+
+        for (int i = 0; i < windows.size(); i++) {
+            InternalWindow window = windows.get(i);
+            if (window.isMaximized()) {
+                window.maximizeOrRestoreWindow();
+            }
+            window.setMinWidth(Math.min(window.getMinWidth(), windowWidth));
+            window.setPrefSize(windowWidth, containerHeight);
+            window.setLayoutX(windowWidth * i);
+            window.setLayoutY(0);
+            setActiveWindow(window);
+        }
+    }
+
+    private void tileWindows(Collection<InternalWindow> windows, double windowWidth, double windowHeight) {
+        int count = 0;
+        double x = 0;
+        double y = 0;
+        int offset = 40;
+
+        for (InternalWindow window : windows) {
+            if (window.isMinimized()) {
+                findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::restoreWindow);
+            }
+
+            if (window.isMaximized()) {
+                window.maximizeOrRestoreWindow();
+            }
+
+            if (windowWidth > 0 && windowHeight > 0) {
+                window.setPrefSize(windowWidth, windowHeight);
+            }
+
+            try {
+                placeInternalWindowNoResize(window, new Point2D(x, y));
+            } catch (PositionOutOfBoundsException e) {
+                x = (++count) * offset;
+                y = 0;
+                placeInternalWindowNoResize(window, new Point2D(x, y));
+            }
+            setActiveWindow(window);
+
+            x += offset;
+            y += offset;
+        }
+    }
+
+    public void placeInternalWindowNoResize(InternalWindow internalWindow, Point2D point) {
+        double containerWidth = internalWindowContainer.getLayoutBounds().getWidth();
+        double containerHeight = internalWindowContainer.getLayoutBounds().getHeight();
+
+        if (containerWidth > point.getX() && containerHeight > point.getY()) {
+            if (containerWidth - point.getX() >= 40 && containerHeight - point.getY() >= 40) {
+                internalWindow.setLayoutX(point.getX());
+                internalWindow.setLayoutY(point.getY());
+            } else {
+                throw new PositionOutOfBoundsException(
+                    "Tried to snapTo MDI Window with ID " + internalWindow.getId() +
+                        " at a coordinate " + point.toString() +
+                        " that is too close to the edge of the parent of size " +
+                        containerWidth + "px x " + containerHeight + "px " +
+                        " for user to comfortably grab the title bar with the mouse.");
+            }
+        } else {
+            throw new PositionOutOfBoundsException(
+                "Tried to snapTo MDI Window with ID " + internalWindow.getId() +
+                    " at a coordinate " + point.toString() +
+                    " that is beyond current size of the MDI container " +
+                    containerWidth + "px x " + containerHeight + "px.");
+        }
+
     }
 }

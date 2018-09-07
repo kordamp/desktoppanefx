@@ -234,16 +234,20 @@ public class InternalWindow extends BorderPane {
         }
     }
 
-    private void updateStyle(PseudoClass pseudo, boolean newValue) {
+    public void updateStyle(PseudoClass pseudo, boolean newValue) {
         pseudoClassStateChanged(pseudo, newValue);
     }
 
     @Override
     public void toFront() {
-        super.toFront();
+        moveToFront();
         if (desktopPane != null) {
             desktopPane.setActiveWindow(this);
         }
+    }
+
+    protected void moveToFront() {
+        super.toFront();
     }
 
     public DesktopPane getDesktopPane() {
