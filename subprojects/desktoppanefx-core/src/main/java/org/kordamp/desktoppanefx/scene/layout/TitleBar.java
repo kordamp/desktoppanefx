@@ -24,7 +24,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -38,14 +41,15 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
  */
 public class TitleBar extends AnchorPane {
     private final InternalWindow internalWindow;
+    private final ContextMenu contextMenu;
     private Pane titlePane;
 
     private Node icon;
     private Label lblTitle;
-    private Button btnClose;
-    private Button btnMinimize;
-    private Button btnMaximize;
-    private Button btnDetach;
+    private final Button btnClose;
+    private final Button btnMinimize;
+    private final Button btnMaximize;
+    private final Button btnDetach;
 
     private boolean disableResize = false;
 
@@ -72,38 +76,11 @@ public class TitleBar extends AnchorPane {
         getChildren().add(titlePane);
         setPadding(new Insets(0, 11, 0, 0));
 
-        btnDetach = new Button("", new FontIcon(resolveDetachIcon()));
-        btnDetach.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        btnDetach.getStyleClass().add("internal-window-titlebar-button");
-        btnDetach.visibleProperty().bind(detachVisible);
-        btnDetach.managedProperty().bind(detachVisible);
-        btnDetach.disableProperty().bind(disableDetach);
-        btnDetach.setOnMouseClicked(e -> internalWindow.detachOrAttachWindow());
-        internalWindow.detachedProperty().addListener((v, o, n) -> btnDetach.setGraphic(new FontIcon(resolveDetachIcon())));
-
-        btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
-        btnClose.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        btnClose.getStyleClass().add("internal-window-titlebar-button");
-        btnClose.visibleProperty().bind(closeVisible);
-        btnClose.managedProperty().bind(closeVisible);
-        btnClose.disableProperty().bind(disableClose);
-        btnClose.setOnMouseClicked(e -> internalWindow.closeWindow());
-
-        btnMinimize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MINIMIZE));
-        btnMinimize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        btnMinimize.getStyleClass().add("internal-window-titlebar-button");
-        btnMinimize.visibleProperty().bind(minimizeVisible);
-        btnMinimize.managedProperty().bind(minimizeVisible);
-        btnMinimize.disableProperty().bind(disableMinimize);
-        btnMinimize.setOnMouseClicked(e -> internalWindow.minimizeWindow());
-
-        btnMaximize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
-        btnMaximize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        btnMaximize.getStyleClass().add("internal-window-titlebar-button");
-        btnMaximize.visibleProperty().bind(maximizeVisible);
-        btnMaximize.managedProperty().bind(maximizeVisible);
-        btnMaximize.disableProperty().bind(disableMaximize);
-        btnMaximize.setOnMouseClicked(e -> internalWindow.maximizeOrRestoreWindow());
+        contextMenu = createContextMenu(internalWindow);
+        btnDetach = createButtonDetach(internalWindow);
+        btnClose = createButtonClose(internalWindow);
+        btnMinimize = createButtonMinimize(internalWindow);
+        btnMaximize = createButtonMaximize(internalWindow);
 
         boolean detachableWindows = Boolean.getBoolean(IncubatingFeatures.DETACHABLE_WINDOWS);
 
@@ -130,6 +107,103 @@ public class TitleBar extends AnchorPane {
         internalWindow.maximizedProperty().addListener((v, o, n) -> ((FontIcon) btnMaximize.getGraphic()).setIconCode(n ?
             MaterialDesign.MDI_WINDOW_RESTORE :
             MaterialDesign.MDI_WINDOW_MAXIMIZE));
+    }
+
+    protected Button createButtonDetach(InternalWindow internalWindow) {
+        Button btnDetach = new Button("", new FontIcon(resolveDetachIcon()));
+        btnDetach.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnDetach.getStyleClass().add("internal-window-titlebar-button");
+        btnDetach.visibleProperty().bind(detachVisible);
+        btnDetach.managedProperty().bind(detachVisible);
+        btnDetach.disableProperty().bind(disableDetach);
+        btnDetach.setOnMouseClicked(e -> internalWindow.detachOrAttachWindow());
+        internalWindow.detachedProperty().addListener((v, o, n) -> btnDetach.setGraphic(new FontIcon(resolveDetachIcon())));
+        return btnDetach;
+    }
+
+    protected Button createButtonClose(InternalWindow internalWindow) {
+        Button btnClose = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_CLOSE));
+        btnClose.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnClose.getStyleClass().add("internal-window-titlebar-button");
+        btnClose.visibleProperty().bind(closeVisible);
+        btnClose.managedProperty().bind(closeVisible);
+        btnClose.disableProperty().bind(disableClose);
+        btnClose.setOnMouseClicked(e -> internalWindow.closeWindow());
+        return btnClose;
+    }
+
+    protected Button createButtonMinimize(InternalWindow internalWindow) {
+        Button btnMinimize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MINIMIZE));
+        btnMinimize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnMinimize.getStyleClass().add("internal-window-titlebar-button");
+        btnMinimize.visibleProperty().bind(minimizeVisible);
+        btnMinimize.managedProperty().bind(minimizeVisible);
+        btnMinimize.disableProperty().bind(disableMinimize);
+        btnMinimize.setOnMouseClicked(e -> internalWindow.minimizeWindow());
+        return btnMinimize;
+    }
+
+    protected Button createButtonMaximize(InternalWindow internalWindow) {
+        Button btnMaximize = new Button("", new FontIcon(MaterialDesign.MDI_WINDOW_MAXIMIZE));
+        btnMaximize.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnMaximize.getStyleClass().add("internal-window-titlebar-button");
+        btnMaximize.visibleProperty().bind(maximizeVisible);
+        btnMaximize.managedProperty().bind(maximizeVisible);
+        btnMaximize.disableProperty().bind(disableMaximize);
+        btnMaximize.setOnMouseClicked(e -> internalWindow.maximizeOrRestoreWindow());
+        return btnMaximize;
+    }
+
+    protected ContextMenu createContextMenu(InternalWindow internalWindow) {
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().addAll(
+            createMinimizeMenu(internalWindow),
+            createMaximizeMenu(internalWindow),
+            createCloseMenu(internalWindow));
+
+        addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
+            if (!internalWindow.isDetached()&& event.isSecondaryButtonDown()) {
+                contextMenu.show(this, event.getScreenX(), event.getScreenY());
+            }
+        });
+        return contextMenu;
+    }
+
+    protected Menu createMinimizeMenu(InternalWindow internalWindow) {
+        Menu minimizeMenu = new Menu("Minimize");
+        MenuItem minimize = new MenuItem("Minimize");
+        minimize.setOnAction(e -> internalWindow.minimizeWindow());
+        MenuItem minimizeAll = new MenuItem("Minimize All");
+        minimizeAll.setOnAction(e -> internalWindow.getDesktopPane().minimizeAllWindows());
+        MenuItem minimizeOthers = new MenuItem("Minimize Others");
+        minimizeOthers.setOnAction(e -> internalWindow.getDesktopPane().minimizeOtherWindows());
+        minimizeMenu.getItems().addAll(minimize, minimizeAll, minimizeOthers);
+        return minimizeMenu;
+    }
+
+    protected Menu createMaximizeMenu(InternalWindow internalWindow) {
+        Menu maximizeMenu = new Menu("Maximize");
+        MenuItem maximize = new MenuItem("Maximize");
+        maximize.setOnAction(e -> internalWindow.maximizeOrRestoreWindow());
+        maximize.disableProperty().bind(internalWindow.maximizedProperty());
+        MenuItem maximizeAll = new MenuItem("Maximize All");
+        maximizeAll.setOnAction(e -> internalWindow.getDesktopPane().maximizeAllWindows());
+        MenuItem maximizeVisible = new MenuItem("Maximize Visible");
+        maximizeVisible.setOnAction(e -> internalWindow.getDesktopPane().maximizeVisibleWindows());
+        maximizeMenu.getItems().addAll(maximize, maximizeAll, maximizeVisible);
+        return maximizeMenu;
+    }
+
+    protected Menu createCloseMenu(InternalWindow internalWindow) {
+        Menu closeMenu = new Menu("Close");
+        MenuItem close = new MenuItem("Close");
+        close.setOnAction(e -> internalWindow.closeWindow());
+        MenuItem closeAll = new MenuItem("Close All");
+        closeAll.setOnAction(e -> internalWindow.getDesktopPane().closeAllWindows());
+        MenuItem closeOthers = new MenuItem("Close Others");
+        closeOthers.setOnAction(e -> internalWindow.getDesktopPane().closeOtherWindows());
+        closeMenu.getItems().addAll(close, closeAll, closeOthers);
+        return closeMenu;
     }
 
     private Pane makeTitlePane(String title) {
