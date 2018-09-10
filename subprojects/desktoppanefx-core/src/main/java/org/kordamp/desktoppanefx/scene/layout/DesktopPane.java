@@ -49,14 +49,14 @@ public class DesktopPane extends BorderPane {
     private final ObservableList<InternalWindow> unmodifiableInternalWindows = FXCollections.unmodifiableObservableList(internalWindows);
     private final ObjectProperty<InternalWindow> activeWindow = new SimpleObjectProperty<>(this, "activeWindow");
 
-    private final EventHandler<InternalWindowEvent> windowOpened = new EventHandler<InternalWindowEvent>() {
+    private final EventHandler<InternalWindowEvent> windowShown = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
             setActiveWindow(event.getInternalWindow());
         }
     };
 
-    private final EventHandler<InternalWindowEvent> windowClosed = new EventHandler<InternalWindowEvent>() {
+    private final EventHandler<InternalWindowEvent> windowHidden = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
             findTaskBarIcon(((InternalWindow) event.getTarget()).getId())
@@ -92,9 +92,9 @@ public class DesktopPane extends BorderPane {
         setCenter(internalWindowContainer);
         setBottom(taskBar.getTaskBar());
 
-        addEventHandler(InternalWindowEvent.EVENT_OPENED, windowOpened);
-        addEventHandler(InternalWindowEvent.EVENT_CLOSED, windowClosed);
-        addEventHandler(InternalWindowEvent.EVENT_MINIMIZED, windowMinimized);
+        addEventHandler(InternalWindowEvent.WINDOW_SHOWN, windowShown);
+        addEventHandler(InternalWindowEvent.WINDOW_HIDDEN, windowHidden);
+        addEventHandler(InternalWindowEvent.WINDOW_MINIMIZED, windowMinimized);
 
         taskBar.positionProperty().addListener((v, o, position) -> {
             getChildren().remove(taskBar.getTaskBar());
@@ -196,8 +196,9 @@ public class DesktopPane extends BorderPane {
         } else {
             placeInternalWindow(internalWindow, position);
         }
+        fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_SHOWING));
         internalWindow.toFront();
-        fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.EVENT_OPENED));
+        fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_SHOWN));
     }
 
     private void restoreExisting(InternalWindow internalWindow) {

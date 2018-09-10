@@ -23,6 +23,8 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ObjectPropertyBase;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
@@ -319,6 +321,7 @@ public class InternalWindow extends BorderPane {
 
     public void minimizeWindow() {
         if (isMinimized()) { return; }
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MINIMIZING));
 
         wasMaximized = isMaximized();
         maximized.set(false);
@@ -336,7 +339,7 @@ public class InternalWindow extends BorderPane {
             setVisible(false);
             setManaged(false);
         }
-        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_MINIMIZED));
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MINIMIZED));
     }
 
     private void captureDetachedWindowBounds() {
@@ -399,6 +402,7 @@ public class InternalWindow extends BorderPane {
     }
 
     private void maximizeInternalWindow(boolean recordSizes) {
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZING));
         if (recordSizes) {
             captureBounds();
         }
@@ -408,16 +412,17 @@ public class InternalWindow extends BorderPane {
         setVisible(true);
         setManaged(true);
         toFront();
-        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_MAXIMIZED));
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZED));
     }
 
     private void restoreInternalWindow() {
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORING));
         maximized.set(false);
         removeListenerToResizeMaximizedWindows();
         setVisible(true);
         setManaged(true);
         toFront();
-        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_RESTORED));
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORED));
     }
 
     private void setCapturedBounds() {
@@ -427,6 +432,7 @@ public class InternalWindow extends BorderPane {
     }
 
     private void maximizeWindow(boolean recordSizes) {
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZING));
         if (recordSizes) {
             captureDetachedWindowBounds();
             // previousWidth = getWidth();
@@ -435,7 +441,7 @@ public class InternalWindow extends BorderPane {
 
         maximized.set(true);
         wasMaximized = false;
-        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_MAXIMIZED));
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZED));
     }
 
     private void maximizeDetachedWindow() {
@@ -447,13 +453,14 @@ public class InternalWindow extends BorderPane {
     }
 
     private void restoreWindow() {
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORING));
         detachedWindow.setX(previousX);
         detachedWindow.setY(previousY);
         detachedWindow.setWidth(previousWidth);
         detachedWindow.setHeight(previousHeight);
 
         maximized.set(false);
-        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_RESTORED));
+        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORED));
     }
 
     private Pane makeContentPane(Node content) {
@@ -642,18 +649,28 @@ public class InternalWindow extends BorderPane {
     }
 
     public void closeWindow() {
-        fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_CLOSED));
+        InternalWindowEvent event = new InternalWindowEvent(this, InternalWindowEvent.WINDOW_CLOSE_REQUEST);
+        fireEvent(event);
+
+        if (event.isConsumed()) {
+            return;
+        }
+
         if (isDetached()) {
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_HIDING));
             detachedWindow.close();
             detachedWindow = null;
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_HIDDEN));
         } else {
             ScaleTransition st = hideWindow();
 
             st.setOnFinished(t -> {
                 desktopPane.removeInternalWindow(this);
                 closed.setValue(true);
+                fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_HIDDEN));
             });
 
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_HIDING));
             st.play();
         }
     }
@@ -685,7 +702,7 @@ public class InternalWindow extends BorderPane {
         setDetached(!isDetached());
 
         if (isDetached()) {
-            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_DETACHED));
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_DETACHING));
 
             Point2D locationOnScreen = this.localToScreen(0, 0);
             detachedWindow.getScene().getStylesheets().setAll(collectStylesheets());
@@ -708,7 +725,6 @@ public class InternalWindow extends BorderPane {
             bp.setTop(titleBar);
             bp.setCenter(contentPane);
             detachedWindow.getScene().setRoot(bp);
-            //detachedWindow.sizeToScene();
 
             detachedWindow.addEventHandler(MouseEvent.MOUSE_PRESSED, windowMousePressed);
             detachedWindow.addEventHandler(MouseEvent.MOUSE_MOVED, windowMouseMoved);
@@ -717,6 +733,7 @@ public class InternalWindow extends BorderPane {
             detachedWindow.setX(locationOnScreen.getX());
             detachedWindow.setY(locationOnScreen.getY());
 
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_DETACHED));
             detachedWindow.show();
 
             if (isMaximized()) {
@@ -726,7 +743,7 @@ public class InternalWindow extends BorderPane {
                 bp.setMaxHeight(getMaxHeight());
             }
         } else {
-            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.EVENT_ATTACHED));
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_ATTACHING));
             detachedWindow.hide();
             detachedWindow.removeEventHandler(MouseEvent.MOUSE_PRESSED, windowMousePressed);
             detachedWindow.removeEventHandler(MouseEvent.MOUSE_MOVED, windowMouseMoved);
@@ -753,6 +770,7 @@ public class InternalWindow extends BorderPane {
                 previousY = maxY - previousHeight;
             }
 
+            fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_ATTACHED));
             dp.addInternalWindow(this, new Point2D(previousX, previousY));
         }
     }
@@ -860,5 +878,488 @@ public class InternalWindow extends BorderPane {
 
     public BooleanBinding showingBinding() {
         return showingBinding;
+    }
+
+    // -- Event handling
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onShowing;
+
+    public final void setOnShowing(EventHandler<InternalWindowEvent> value) {
+        onShowingProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnShowing() {
+        return onShowing == null ? null : onShowing.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onShowingProperty() {
+        if (onShowing == null) {
+            onShowing = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_SHOWING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onShowing";
+                }
+            };
+        }
+        return onShowing;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onShown;
+
+    public final void setOnShown(EventHandler<InternalWindowEvent> value) {
+        onShownProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnShown() {
+        return onShown == null ? null : onShown.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onShownProperty() {
+        if (onShown == null) {
+            onShown = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_SHOWN, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onShown";
+                }
+            };
+        }
+        return onShown;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onHiding;
+
+    public final void setOnHiding(EventHandler<InternalWindowEvent> value) {
+        onHidingProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnHiding() {
+        return onHiding == null ? null : onHiding.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onHidingProperty() {
+        if (onHiding == null) {
+            onHiding = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_HIDING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onHiding";
+                }
+            };
+        }
+        return onHiding;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onHidden;
+
+    public final void setOnHidden(EventHandler<InternalWindowEvent> value) {
+        onHiddenProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnHidden() {
+        return onHidden == null ? null : onHidden.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onHiddenProperty() {
+        if (onHidden == null) {
+            onHidden = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_HIDDEN, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onHidden";
+                }
+            };
+        }
+        return onHidden;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onCloseRequest;
+
+    public final void setOnCloseRequest(EventHandler<InternalWindowEvent> value) {
+        onCloseRequestProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnCloseRequest() {
+        return (onCloseRequest != null) ? onCloseRequest.get() : null;
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>>
+    onCloseRequestProperty() {
+        if (onCloseRequest == null) {
+            onCloseRequest = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_CLOSE_REQUEST, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onCloseRequest";
+                }
+            };
+        }
+        return onCloseRequest;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizing;
+
+    public final void setOnMinimizing(EventHandler<InternalWindowEvent> value) {
+        onMinimizingProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnMinimizing() {
+        return onMinimizing == null ? null : onMinimizing.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizingProperty() {
+        if (onMinimizing == null) {
+            onMinimizing = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_MINIMIZING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onMinimizing";
+                }
+            };
+        }
+        return onMinimizing;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMinimized;
+
+    public final void setOnMinimized(EventHandler<InternalWindowEvent> value) {
+        onMinimizedProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnMinimized() {
+        return onMinimized == null ? null : onMinimized.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizedProperty() {
+        if (onMinimized == null) {
+            onMinimized = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_MINIMIZED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onMinimized";
+                }
+            };
+        }
+        return onMinimized;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizing;
+
+    public final void setOnMaximizing(EventHandler<InternalWindowEvent> value) {
+        onMaximizingProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnMaximizing() {
+        return onMaximizing == null ? null : onMaximizing.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizingProperty() {
+        if (onMaximizing == null) {
+            onMaximizing = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_MAXIMIZING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onMaximizing";
+                }
+            };
+        }
+        return onMaximizing;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMaximized;
+
+    public final void setOnMaximized(EventHandler<InternalWindowEvent> value) {
+        onMaximizedProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnMaximized() {
+        return onMaximized == null ? null : onMaximized.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizedProperty() {
+        if (onMaximized == null) {
+            onMaximized = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_MAXIMIZED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onMaximized";
+                }
+            };
+        }
+        return onMaximized;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onRestoring;
+
+    public final void setOnRestoring(EventHandler<InternalWindowEvent> value) {
+        onRestoringProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnRestoring() {
+        return onRestoring == null ? null : onRestoring.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onRestoringProperty() {
+        if (onRestoring == null) {
+            onRestoring = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_RESTORING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onRestoring";
+                }
+            };
+        }
+        return onRestoring;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onRestored;
+
+    public final void setOnRestored(EventHandler<InternalWindowEvent> value) {
+        onRestoredProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnRestored() {
+        return onRestored == null ? null : onRestored.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onRestoredProperty() {
+        if (onRestored == null) {
+            onRestored = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_RESTORED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onRestored";
+                }
+            };
+        }
+        return onRestored;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onAttaching;
+
+    public final void setOnAttaching(EventHandler<InternalWindowEvent> value) {
+        onAttachingProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnAttaching() {
+        return onAttaching == null ? null : onAttaching.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onAttachingProperty() {
+        if (onAttaching == null) {
+            onAttaching = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_ATTACHING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onAttaching";
+                }
+            };
+        }
+        return onAttaching;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onAttached;
+
+    public final void setOnAttached(EventHandler<InternalWindowEvent> value) {
+        onAttachedProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnAttached() {
+        return onAttached == null ? null : onAttached.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onAttachedProperty() {
+        if (onAttached == null) {
+            onAttached = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_ATTACHED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onAttached";
+                }
+            };
+        }
+        return onAttached;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onDetaching;
+
+    public final void setOnDetaching(EventHandler<InternalWindowEvent> value) {
+        onDetachingProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnDetaching() {
+        return onDetaching == null ? null : onDetaching.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onDetachingProperty() {
+        if (onDetaching == null) {
+            onDetaching = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_DETACHING, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onDetaching";
+                }
+            };
+        }
+        return onDetaching;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onDetached;
+
+    public final void setOnDetached(EventHandler<InternalWindowEvent> value) {
+        onDetachedProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnDetached() {
+        return onDetached == null ? null : onDetached.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onDetachedProperty() {
+        if (onDetached == null) {
+            onDetached = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_DETACHED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onDetached";
+                }
+            };
+        }
+        return onDetached;
     }
 }

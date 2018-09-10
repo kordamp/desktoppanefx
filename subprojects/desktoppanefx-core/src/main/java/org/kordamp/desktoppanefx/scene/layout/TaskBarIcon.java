@@ -72,9 +72,17 @@ public class TaskBarIcon extends Button {
         //Removing the shadow when the mouse cursor is off
         btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> btnClose.setEffect(null));
         btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+            InternalWindowEvent event = new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_CLOSE_REQUEST);
+            internalWindow.fireEvent(event);
+
+            if (event.isConsumed()) {
+                return;
+            }
+
+            internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_HIDING));
             removeInternalWindow();
             removeIcon();
-            internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.EVENT_CLOSED));
+            internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_HIDDEN));
         });
 
         pane.getChildren().addAll(icon, lblTitle, btnClose);
