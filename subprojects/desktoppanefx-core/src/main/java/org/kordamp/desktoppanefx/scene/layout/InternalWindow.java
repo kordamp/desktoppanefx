@@ -281,19 +281,28 @@ public class InternalWindow extends BorderPane {
 
         setPrefSize(200, 200);
         getStyleClass().add("internal-window");
-        setTop(titleBar = new TitleBar(this, icon, title));
+        setTop(titleBar = createTitleBar(icon, title));
         setCenter(contentPane = makeContentPane(content));
 
-        detachedWindow = new Stage();
-        detachedWindow.setScene(new Scene(new BorderPane()));
-        detachedWindow.initStyle(StageStyle.TRANSPARENT);
-        detachedWindow.getScene().setFill(null);
+        detachedWindow = createDetachedWindow();
 
         showingBinding = createBooleanBinding(() -> isVisible() | detachedWindow.isShowing(),
             visibleProperty(), detachedWindow.showingProperty());
 
         updateStyle(ACTIVE_CLASS, true);
         activeProperty().addListener((observable, oldValue, newValue) -> updateStyle(ACTIVE_CLASS, newValue));
+    }
+
+    protected Stage createDetachedWindow() {
+        Stage detachedWindow = new Stage();
+        detachedWindow.setScene(new Scene(new BorderPane()));
+        detachedWindow.initStyle(StageStyle.TRANSPARENT);
+        detachedWindow.getScene().setFill(null);
+        return detachedWindow;
+    }
+
+    protected TitleBar createTitleBar(Node icon, String title) {
+        return new TitleBar(this, icon, title);
     }
 
     public Node getContent() {
@@ -342,6 +351,12 @@ public class InternalWindow extends BorderPane {
         previousY = getLayoutY();
         previousHeight = getHeight();
         previousWidth = getWidth();
+        if (previousWidth < 1) {
+            previousWidth = getPrefWidth();
+        }
+        if (previousHeight < 1) {
+            previousHeight = getPrefHeight();
+        }
     }
 
     public void maximizeOrRestoreWindow() {
@@ -397,7 +412,6 @@ public class InternalWindow extends BorderPane {
     }
 
     private void restoreInternalWindow() {
-        setCapturedBounds();
         maximized.set(false);
         removeListenerToResizeMaximizedWindows();
         setVisible(true);
@@ -409,8 +423,7 @@ public class InternalWindow extends BorderPane {
     private void setCapturedBounds() {
         setLayoutX(previousX);
         setLayoutY(previousY);
-        setWidth(previousWidth);
-        setHeight(previousHeight);
+        setPrefSize(previousWidth, previousHeight);
     }
 
     private void maximizeWindow(boolean recordSizes) {
@@ -724,8 +737,7 @@ public class InternalWindow extends BorderPane {
 
             captureDetachedWindowBounds();
 
-            setWidth(previousWidth);
-            setHeight(previousHeight);
+            setPrefSize(previousWidth, previousHeight);
 
             Bounds boundsInScreen = dp.localToScreen(dp.getBoundsInLocal());
             previousX = Math.max(previousX - boundsInScreen.getMinX(), 0);
