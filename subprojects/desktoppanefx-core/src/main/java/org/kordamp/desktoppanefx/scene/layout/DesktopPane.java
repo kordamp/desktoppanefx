@@ -113,6 +113,10 @@ public class DesktopPane extends BorderPane {
     }
 
     protected void setActiveWindow(InternalWindow nextWindow) {
+        if (nextWindow == null) {
+            return; // no change
+        }
+
         InternalWindow previousWindow = activeWindow.getValue();
         if (previousWindow != null) {
             previousWindow.setActive(false);
@@ -405,35 +409,59 @@ public class DesktopPane extends BorderPane {
 
     public void maximizeVisibleWindows() {
         InternalWindow currentWindow = getActiveWindow();
+        InternalWindow[] iteration = new InternalWindow[1];
 
         getInternalWindows().stream()
             .filter(window -> !window.isMinimized())
             .filter(window -> !window.isMaximized())
-            .forEach(InternalWindow::maximizeOrRestoreWindow);
+            .forEach(window -> {
+                iteration[0] = window;
+                window.maximizeOrRestoreWindow();
+            });
 
-        setActiveWindow(currentWindow);
+        if (currentWindow != null) {
+            setActiveWindow(currentWindow);
+        } else {
+            setActiveWindow(iteration[0]);
+        }
     }
 
     public void restoreMinimizedWindows() {
         InternalWindow currentWindow = getActiveWindow();
+        InternalWindow[] iteration = new InternalWindow[1];
 
         getInternalWindows().stream()
             .filter(InternalWindow::isMinimized)
             .forEach(window ->
-                findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::restoreWindow));
+                findTaskBarIcon(window.getId()).ifPresent(icon -> {
+                    iteration[0] = window;
+                    icon.restoreWindow();
+                }));
 
-        setActiveWindow(currentWindow);
+        if (currentWindow != null) {
+            setActiveWindow(currentWindow);
+        } else {
+            setActiveWindow(iteration[0]);
+        }
     }
 
     public void restoreVisibleWindows() {
         InternalWindow currentWindow = getActiveWindow();
+        InternalWindow[] iteration = new InternalWindow[1];
 
         getInternalWindows().stream()
             .filter(window -> !window.isMinimized())
             .filter(InternalWindow::isMaximized)
-            .forEach(InternalWindow::maximizeOrRestoreWindow);
+            .forEach(window -> {
+                iteration[0] = window;
+                window.maximizeOrRestoreWindow();
+            });
 
-        setActiveWindow(currentWindow);
+        if (currentWindow != null) {
+            setActiveWindow(currentWindow);
+        } else {
+            setActiveWindow(iteration[0]);
+        }
     }
 
     public void closeAllWindows() {
