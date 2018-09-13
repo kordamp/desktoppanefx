@@ -30,6 +30,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +60,7 @@ public class DesktopPane extends BorderPane {
     private final EventHandler<InternalWindowEvent> windowHidden = new EventHandler<InternalWindowEvent>() {
         @Override
         public void handle(InternalWindowEvent event) {
-            findTaskBarIcon(((InternalWindow) event.getTarget()).getId())
+            getTaskBar().findTaskBarIcon(((InternalWindow) event.getTarget()).getId())
                 .ifPresent(taskBar::removeTaskBarIcon);
             selectActiveWindow();
         }
@@ -70,7 +71,7 @@ public class DesktopPane extends BorderPane {
         public void handle(InternalWindowEvent event) {
             InternalWindow internalWindow = event.getInternalWindow();
             String id = internalWindow.getId();
-            if (!findTaskBarIcon(id).isPresent()) {
+            if (!getTaskBar().findTaskBarIcon(id).isPresent()) {
                 try {
                     taskBar.addTaskBarIcon(createTaskBarIcon(internalWindow));
                     selectActiveWindow();
@@ -90,30 +91,30 @@ public class DesktopPane extends BorderPane {
 
         taskBar = new TaskBar();
         setCenter(internalWindowContainer);
-        setBottom(taskBar.getTaskBar());
+        setBottom(taskBar.getTaskBarComponent());
 
         addEventHandler(InternalWindowEvent.WINDOW_SHOWN, windowShown);
         addEventHandler(InternalWindowEvent.WINDOW_HIDDEN, windowHidden);
         addEventHandler(InternalWindowEvent.WINDOW_MINIMIZED, windowMinimized);
 
         taskBar.positionProperty().addListener((v, o, position) -> {
-            getChildren().remove(taskBar.getTaskBar());
+            getChildren().remove(taskBar.getTaskBarComponent());
             switch (position) {
                 case TOP:
-                    setTop(taskBar.getTaskBar());
+                    setTop(taskBar.getTaskBarComponent());
                     break;
                 case BOTTOM:
-                    setBottom(taskBar.getTaskBar());
+                    setBottom(taskBar.getTaskBarComponent());
             }
         });
     }
 
     protected TaskBarIcon createTaskBarIcon(InternalWindow internalWindow) {
-        return new TaskBarIcon(internalWindow);
+        return new TaskBarIcon(getTaskBar(), internalWindow);
     }
 
     protected void setActiveWindow(InternalWindow nextWindow) {
-        if (nextWindow == null) {
+        if (nextWindow == null || nextWindow.isMinimized()) {
             return; // no change
         }
 
@@ -187,7 +188,7 @@ public class DesktopPane extends BorderPane {
             internalWindowContainer.getChildren().remove(internalWindow);
         });
 
-        findTaskBarIcon(windowId).ifPresent(taskBar::removeTaskBarIcon);
+        getTaskBar().findTaskBarIcon(windowId).ifPresent(taskBar::removeTaskBarIcon);
 
         return this;
     }
@@ -206,20 +207,13 @@ public class DesktopPane extends BorderPane {
     }
 
     private void restoreExisting(InternalWindow internalWindow) {
-        findTaskBarIcon(internalWindow.getId())
+        getTaskBar().findTaskBarIcon(internalWindow.getId())
             .ifPresent(taskBar::removeTaskBarIcon);
 
         if (internalWindows.contains(internalWindow)) {
             internalWindow.toFront();
             internalWindow.setVisible(true);
         }
-    }
-
-
-    public Optional<TaskBarIcon> findTaskBarIcon(String id) {
-        return taskBar.getTaskBarIcons().stream()
-            .filter(icon -> icon.getId().equals(id))
-            .findFirst();
     }
 
     public Optional<InternalWindow> findInternalWindow(String id) {
@@ -333,7 +327,7 @@ public class DesktopPane extends BorderPane {
             return;
         }
 
-        findTaskBarIcon(id).ifPresent(TaskBarIcon::restoreWindow);
+        getTaskBar().findTaskBarIcon(id).ifPresent(TaskBarIcon::restoreWindow);
         findInternalWindow(id).ifPresent(InternalWindow::toFront);
     }
 
@@ -342,7 +336,7 @@ public class DesktopPane extends BorderPane {
             return;
         }
 
-        findTaskBarIcon(internalWindow.getId()).ifPresent(TaskBarIcon::restoreWindow);
+        getTaskBar().findTaskBarIcon(internalWindow.getId()).ifPresent(TaskBarIcon::restoreWindow);
         internalWindow.toFront();
     }
 
@@ -433,7 +427,7 @@ public class DesktopPane extends BorderPane {
         getInternalWindows().stream()
             .filter(InternalWindow::isMinimized)
             .forEach(window ->
-                findTaskBarIcon(window.getId()).ifPresent(icon -> {
+                getTaskBar().findTaskBarIcon(window.getId()).ifPresent(icon -> {
                     iteration[0] = window;
                     icon.restoreWindow();
                 }));
@@ -465,14 +459,27 @@ public class DesktopPane extends BorderPane {
     }
 
     public void closeAllWindows() {
-        getInternalWindows().forEach(InternalWindow::closeWindow);
+        List<InternalWindow> windows = new ArrayList<>(getInternalWindows());
+
+        windows.forEach(window ->
+            getTaskBar().findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::closeWindow));
+
+        windows.forEach(InternalWindow::closeWindow);
+
         setActiveWindow(null);
     }
 
     public void closeOtherWindows() {
         InternalWindow currentWindow = getActiveWindow();
 
-        getInternalWindows().stream()
+        List<InternalWindow> windows = new ArrayList<>(getInternalWindows());
+
+        windows.stream()
+            .filter(window -> !window.equals(currentWindow))
+            .forEach(window ->
+                getTaskBar().findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::closeWindow));
+
+        windows.stream()
             .filter(window -> !window.equals(currentWindow))
             .forEach(InternalWindow::closeWindow);
 
@@ -550,7 +557,7 @@ public class DesktopPane extends BorderPane {
 
         for (InternalWindow window : windows) {
             if (window.isMinimized()) {
-                findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::restoreWindow);
+                getTaskBar().findTaskBarIcon(window.getId()).ifPresent(TaskBarIcon::restoreWindow);
             }
 
             if (window.isMaximized()) {

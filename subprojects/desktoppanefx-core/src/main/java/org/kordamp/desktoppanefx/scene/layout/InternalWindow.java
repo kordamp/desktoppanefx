@@ -665,7 +665,9 @@ public class InternalWindow extends BorderPane {
             ScaleTransition st = hideWindow();
 
             st.setOnFinished(t -> {
-                desktopPane.removeInternalWindow(this);
+                if (desktopPane != null) {
+                    desktopPane.removeInternalWindow(this);
+                }
                 closed.setValue(true);
                 fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_HIDDEN));
             });

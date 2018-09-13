@@ -35,12 +35,13 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
 public class TaskBarIcon extends Button {
     private final Button btnClose;
     private final Label lblTitle;
+    private final TaskBar taskBar;
     private final InternalWindow internalWindow;
     private final DesktopPane desktopPane;
     private Node icon;
 
-    public TaskBarIcon(InternalWindow internalWindow) {
-        super();
+    public TaskBarIcon(TaskBar taskBar, InternalWindow internalWindow) {
+        this.taskBar = taskBar;
         this.internalWindow = internalWindow;
         this.icon = internalWindow.getTitleBar().getIcon();
         this.desktopPane = internalWindow.getDesktopPane();
@@ -71,23 +72,25 @@ public class TaskBarIcon extends Button {
 
         //Removing the shadow when the mouse cursor is off
         btnClose.addEventHandler(MouseEvent.MOUSE_EXITED, e -> btnClose.setEffect(null));
-        btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-            InternalWindowEvent event = new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_CLOSE_REQUEST);
-            internalWindow.fireEvent(event);
-
-            if (event.isConsumed()) {
-                return;
-            }
-
-            internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_HIDING));
-            removeInternalWindow();
-            removeIcon();
-            internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_HIDDEN));
-        });
+        btnClose.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> closeWindow());
 
         pane.getChildren().addAll(icon, lblTitle, btnClose);
         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         setGraphic(pane);
+    }
+
+    public void closeWindow() {
+        InternalWindowEvent event = new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_CLOSE_REQUEST);
+        internalWindow.fireEvent(event);
+
+        if (event.isConsumed()) {
+            return;
+        }
+
+        internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_HIDING));
+        removeInternalWindow();
+        removeIcon();
+        internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_HIDDEN));
     }
 
     public final InternalWindow getInternalWindow() {
@@ -105,8 +108,7 @@ public class TaskBarIcon extends Button {
     }
 
     private void removeIcon() {
-        desktopPane.findTaskBarIcon(getId())
-            .ifPresent(desktopPane.getTaskBar()::removeTaskBarIcon);
+        taskBar.removeTaskBarIcon(this);
     }
 
     public boolean isCloseVisible() {

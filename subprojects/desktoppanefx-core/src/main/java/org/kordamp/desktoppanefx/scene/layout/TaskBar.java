@@ -26,6 +26,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 
+import java.util.Optional;
+
 /**
  * @author Andres Almiray
  */
@@ -82,8 +84,14 @@ public class TaskBar {
         return unmodifiableIcons;
     }
 
-    ScrollPane getTaskBar() {
+    ScrollPane getTaskBarComponent() {
         return taskBar;
+    }
+
+    public Optional<TaskBarIcon> findTaskBarIcon(String id) {
+        return getTaskBarIcons().stream()
+            .filter(icon -> icon.getId().equals(id))
+            .findFirst();
     }
 
     public void addTaskBarIcon(TaskBarIcon icon) {
