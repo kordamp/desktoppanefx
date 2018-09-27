@@ -7,17 +7,14 @@ buildscript {
     }
 
     dependencies {
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'org.ajoberstar:gradle-git-publish:0.3.2'
         classpath 'org.kordamp.gradle:stats-gradle-plugin:0.2.2'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.20.0'
         classpath 'net.nemerosa:versioning:2.7.1'
     }
 }
 
-apply plugin: 'org.ajoberstar.git-publish'
 apply plugin: 'net.nemerosa.versioning'
 
 Date buildTimeAndDate = new Date()
@@ -26,7 +23,8 @@ ext {
     buildDate = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
     buildTime = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
     buildRevision = versioning.info.commit
-    buildCreatedBy = "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString()
+    buildJdk = "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString()
+    buildCreatedBy = "Gradle ${gradle.gradleVersion}"
 }
 
 allprojects {
@@ -70,9 +68,7 @@ idea {
 
 subprojects { subproj ->
     apply plugin: 'java'
-    apply plugin: 'com.github.kt3k.coveralls'
     apply plugin: 'org.kordamp.gradle.stats'
-    apply from: rootProject.file('gradle/code-coverage.gradle')
     apply from: rootProject.file('gradle/code-quality.gradle')
 
     subproj.tasks.withType(JavaCompile) {
@@ -85,7 +81,6 @@ subprojects { subproj ->
     }
 
     if (subproj.name.contains('desktoppane')) {
-
         javadoc {
             excludes = ['**/*.html', 'META-INF/**']
 
@@ -108,6 +103,7 @@ subprojects { subproj ->
         }
 
         task javadocJar(type: Jar) {
+            dependsOn 'javadoc'
             group 'Build'
             description 'An archive of the javadoc'
             classifier 'javadoc'
@@ -123,32 +119,5 @@ subprojects { subproj ->
         }
 
         apply from: rootProject.file('gradle/publishing.gradle')
-
-        dependencies {
-            testCompile 'junit:junit:4.12'
-        }
     }
 }
-
-evaluationDependsOnChildren()
-
-if (!project.hasProperty('githubUsername')) ext.githubUsername = ''
-if (!project.hasProperty('githubPassword')) ext.githubPassword = ''
-
-gitPublish {
-    repoUri = project.project_scm
-    branch = 'gh-pages'
-    contents {
-        from project(':guide').guide.outputs.files
-    }
-    commitMessage = "Publish guide for $version"
-
-/*
-    credentials {
-        username = githubUsername
-        password = githubPassword
-    }
-*/
-}
-
-gitPublishCommit.dependsOn(project(':guide').guide)
