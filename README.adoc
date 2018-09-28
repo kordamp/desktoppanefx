@@ -22,26 +22,42 @@ image::screenshots/desktoppanefx.png[]
 
 == Installing
 
-You can get the latest version of **DesktopPaneFX** directly from link:https://bintray.com[Bintray's JCenter] repository
-or from Maven Central.
+You can get the latest version of **DesktopPaneFX** directly from link:https://bintray.com[Bintray's JCenter] repository or Maven Central.
 
-.Maven
-[source]
-[subs="verbatim,attributes"]
+[source,groovy]
+[subs="attributes"]
+.gradle
 ----
-<dependency>
-    <groupId>{project-group}</groupId>
-    <artifactId>{project-name}-core</artifactId>
-    <version>{project-version}</version>
-</dependency>
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile '{project-group}:desktoppanefx-core:{project-version}'
+}
 ----
 
-.Gradle
-[source]
-[subs="verbatim,attributes"]
+[source,xml]
+[subs="attributes,verbatim"]
+.maven
 ----
-compile '{project-group}:{project-name}-core:{project-version}'
+<dependencies>
+    <dependency>
+        <groupId>{project-group}</groupId>
+        <artifactId>desktoppanefx-core</artifactId>
+        <version>{project-version}</version>
+    </dependency>
+</dependencies>
+
+<repositories>
+    <repository>
+        <id>central</id>
+        <name>jcenter</name>
+        <url>http://jcenter.bintray.com</url>
+    </repository>
+</repositories>
 ----
+
 === Java 9+
 
 DesktopPaneFX can be used in a modular fashion when running in Java9+. It's module name is `org.kordamp.desktoppanefx.core`.
