@@ -1,44 +1,82 @@
-import java.text.SimpleDateFormat
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Copyright 2015-2019 Andres Almiray.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-buildscript {
-    repositories {
-        jcenter()
-        maven { url 'https://plugins.gradle.org/m2/' }
-    }
-
-    dependencies {
-        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'org.kordamp.gradle:stats-gradle-plugin:0.2.2'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.20.0'
-        classpath 'net.nemerosa:versioning:2.7.1'
-    }
+plugins {
+    id 'com.gradle.build-scan'                version '2.1'
+    id 'org.kordamp.gradle.kordamp-parentpom' version '1.2.1'
+    id 'org.kordamp.gradle.source-xref'       version '0.12.0'
 }
 
-apply plugin: 'net.nemerosa.versioning'
+buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+}
+config {
+    info {
+        name          = 'DesktopPaneFX'
+        description   = 'MDI components for JavaFX'
+        inceptionYear = '2015'
+        tags          = ['mdi', 'javafx']
 
-Date buildTimeAndDate = new Date()
-ext {
-    buildBy = System.properties['user.name']
-    buildDate = new SimpleDateFormat('yyyy-MM-dd').format(buildTimeAndDate)
-    buildTime = new SimpleDateFormat('HH:mm:ss.SSSZ').format(buildTimeAndDate)
-    buildRevision = versioning.info.commit
-    buildJdk = "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})".toString()
-    buildCreatedBy = "Gradle ${gradle.gradleVersion}"
+        specification { enabled = false }
+
+        credentials {
+            sonatype {
+                username = project.sonatypeUsername
+                password = project.sonatypePassword
+            }
+        }
+
+        people {
+            person {
+                id = 'lincolnminto'
+                name = 'Lincoln Minto'
+                roles = ['developer']
+            }
+        }
+    }
+
+    sourceXref {
+        inputEncoding = 'UTF-8'
+    }
+
+    javadoc {
+        excludes = ['**/*.html', 'META-INF/**']
+        options {
+            links('http://docs.oracle.com/javase/8/docs/api/',
+                'http://docs.oracle.com/javase/8/javafx/api/')
+        }
+    }
 }
 
 allprojects {
-    apply plugin: 'base'
     apply plugin: 'idea'
-    apply plugin: 'com.github.ben-manes.versions'
-
-    repositories {
-        jcenter()
-    }
-
-    if (JavaVersion.current().isJava8Compatible()) {
-        tasks.withType(Javadoc) {
-            options.addStringOption('Xdoclint:none', '-quiet')
+    
+    dependencyUpdates.resolutionStrategy = {
+        componentSelection { rules ->
+            rules.all { selection ->
+                boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm'].any { qualifier ->
+                    selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+                }
+                if (rejected) {
+                    selection.reject('Release candidate')
+                }
+            }
         }
     }
 }
@@ -52,72 +90,20 @@ idea {
             withXml { provider ->
                 def node = provider.asNode()
                 node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
-
-                def compilerConfiguration = node.component.find { it.'@name' == 'CompilerConfiguration' }
-                compilerConfiguration.remove(compilerConfiguration.annotationProcessing)
-                compilerConfiguration.append(new XmlParser().parseText('''
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="true">
-        <processorPath useClasspath="true" />
-      </profile>
-    </annotationProcessing>'''))
             }
         }
     }
 }
 
 subprojects { subproj ->
-    apply plugin: 'java'
-    apply plugin: 'org.kordamp.gradle.stats'
-    apply from: rootProject.file('gradle/code-quality.gradle')
-
     subproj.tasks.withType(JavaCompile) {
         sourceCompatibility = subproj.sourceCompatibility
         targetCompatibility = subproj.targetCompatibility
     }
 
-    repositories {
-        jcenter()
-    }
-
-    if (subproj.name.contains('desktoppane')) {
-        javadoc {
-            excludes = ['**/*.html', 'META-INF/**']
-
-            options.use         = true
-            options.splitIndex  = true
-            options.encoding    = 'UTF-8'
-            options.author      = true
-            options.version     = true
-            options.windowTitle = "$project.name $project.version API"
-            options.docTitle    = "$project.name $project.version API"
-            options.links 'https://docs.oracle.com/javase/8/docs/api/'
-            options.links 'https://docs.oracle.com/javase/8/javafx/api/'
+    license {
+        mapping {
+            fxml = 'XML_STYLE'
         }
-
-        task sourcesJar(type: Jar) {
-            group 'Build'
-            description 'An archive of the source code'
-            classifier 'sources'
-            from sourceSets.main.allSource
-        }
-
-        task javadocJar(type: Jar) {
-            dependsOn 'javadoc'
-            group 'Build'
-            description 'An archive of the javadoc'
-            classifier 'javadoc'
-            from javadoc.destinationDir
-        }
-
-        jar.finalizedBy sourcesJar
-        jar.finalizedBy javadocJar
-
-        artifacts {
-            sourcesJar
-            javadocJar
-        }
-
-        apply from: rootProject.file('gradle/publishing.gradle')
     }
 }
