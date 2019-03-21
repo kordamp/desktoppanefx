@@ -117,7 +117,7 @@ The following features can be activated by defining a System property with a `"t
 
 You must meet the following requirements:
 
- * JDK8u60 as a minimum
+ * JDK8u172 as a minimum footnote:[Using the incubating feature for attaching and detaching windows leads to a styling issue for JDK8u102 to JDK8u171 (see https://bugs.openjdk.java.net/browse/JDK-8183100)]
  * Gradle 4.10
 
 You may used the included gradle wrapper script if you don't have `gradle` installed.
