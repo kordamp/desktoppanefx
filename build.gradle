@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright 2015-2019 Andres Almiray.
+ * Copyright 2015-2019 The original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 plugins {
-    id 'com.gradle.build-scan'                version '2.1'
-    id 'org.kordamp.gradle.kordamp-parentpom' version '1.2.1'
-    id 'org.kordamp.gradle.source-xref'       version '0.12.0'
+    id 'org.kordamp.gradle.kordamp-parentpom' version '1.6.0'
+    id 'org.kordamp.gradle.source-xref'       version '0.26.0'
 }
 
-buildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-}
 config {
     info {
         name          = 'DesktopPaneFX'
