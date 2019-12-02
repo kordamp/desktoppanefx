@@ -204,8 +204,10 @@ public class DesktopPane extends BorderPane {
             placeInternalWindow(internalWindow, position);
         }
         fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_SHOWING));
+        internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_SHOWING));
         internalWindow.toFront();
         fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_SHOWN));
+        internalWindow.fireEvent(new InternalWindowEvent(internalWindow, InternalWindowEvent.WINDOW_SHOWN));
     }
 
     private void restoreExisting(InternalWindow internalWindow) {
