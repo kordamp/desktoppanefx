@@ -1,12 +1,12 @@
 = DesktopPaneFX
 :linkattrs:
-:project-owner:   aalmiray
-:project-repo:    kordamp
+:project-owner:   kordamp
+:project-repo:    maven
 :project-name:    desktoppanefx
 :project-group:   org.kordamp.desktoppanefx
-:project-version: 0.12.0
+:project-version: 0.13.0
 
-image:http://img.shields.io/travis/aalmiray/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/aalmiray/{project-name}"]
+image:http://img.shields.io/travis/{project-owner}/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/{project-owner}/{project-name}"]
 image:http://img.shields.io/badge/license-ASL2-blue.svg["ASL2 Licensed", link="http://opensource.org/licenses/ASL2"]
 image:https://api.bintray.com/packages/{project-owner}/{project-repo}/{project-name}/images/download.svg[link="https://bintray.com/{project-owner}/{project-repo}/{project-name}/_latestVersion"]
 image:https://img.shields.io/maven-central/v/{project-group}/{project-name}-core.svg?label=maven[link="https://search.maven.org/#search|ga|1|{project-group}"]
@@ -14,7 +14,7 @@ image:https://img.shields.io/badge/donations-Patreon-orange.svg[link="https://ww
 
 ---
 
-JDesktopPaneFX is a JavaFX version of Swing's JDesktopPane which can be used as a container for individual "child" similar to JInternalFrames.
+DesktopPaneFX is a JavaFX version of Swing's JDesktopPane which can be used as a container for individual "child" similar to JInternalFrames.
 
 This project started as a fork of link:https://github.com/lincolnminto/javaFXMDI[JavaFXMDI] authored by Lincoln Minto.
 
@@ -118,7 +118,7 @@ The following features can be activated by defining a System property with a `"t
 You must meet the following requirements:
 
  * JDK8u172 as a minimum footnote:[Using the incubating feature for attaching and detaching windows leads to a styling issue for JDK8u102 to JDK8u171 (see https://bugs.openjdk.java.net/browse/JDK-8183100)]
- * Gradle 4.10
+ * Gradle 6
 
 You may used the included gradle wrapper script if you don't have `gradle` installed.
 
