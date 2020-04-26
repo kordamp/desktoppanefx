@@ -22,26 +22,21 @@ pluginManagement {
         mavenLocal()
     }
     plugins {
-        id 'org.kordamp.gradle.kordamp-parentpom' version kordampPomVersion
-        id 'org.kordamp.gradle.source-xref'       version kordampPluginVersion
-	    id 'org.kordamp.gradle.guide'             version kordampPluginVersion
-	    id 'org.ajoberstar.git-publish'           version gitPluginVersion
+	    id 'org.kordamp.gradle.guide'   version kordampPluginVersion
+	    id 'org.ajoberstar.git-publish' version gitPluginVersion
     }
 }
 
 buildscript {
     repositories {
         gradlePluginPortal()
+        jcenter()
         mavenLocal()
     }
     dependencies {
-        classpath "org.kordamp.gradle:settings-gradle-plugin:$kordampPluginVersion"
+        classpath "org.kordamp.gradle:kordamp-parentbuild:$kordampBuildVersion"
     }
 }
-apply plugin: 'org.kordamp.gradle.settings'
+apply plugin: 'org.kordamp.gradle.kordamp-parentbuild'
 
 rootProject.name = 'desktoppanefx'
-
-projects {
-    directories = ['subprojects']
-}
