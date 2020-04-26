@@ -6,7 +6,6 @@ services:
   - xvfb
 before_install:
   - sudo apt update
-  - sudo apt install openjfx
   - chmod +x ./gradlew
   - export DISPLAY=:99.0
 install: true
