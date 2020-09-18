@@ -31,7 +31,6 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -56,29 +55,7 @@ import static javafx.beans.binding.Bindings.createBooleanBinding;
  * @author Andres Almiray
  */
 public class InternalWindow extends BorderPane {
-    private double mousex = 0;
-    private double mousey = 0;
-    private double x = 0;
-    private double y = 0;
-
-    private TitleBar titleBar;
-    private Pane contentPane;
-    private Node content;
-
-    private InternalWindow.ResizeMode resizeMode;
-    private boolean resize;
-    private boolean resizeTop;
-    private boolean resizeBottom;
-    private boolean resizeRight;
-    private boolean resizeLeft;
-    private double previousWidth;
-    private double previousHeight;
-    private double previousY;
-    private double previousX;
-
-    private Stage detachedWindow;
-    private DesktopPane desktopPane;
-    private boolean wasMaximized = false;
+    private static final PseudoClass ACTIVE_CLASS = PseudoClass.getPseudoClass("active");
 
     private final BooleanProperty active = new SimpleBooleanProperty(this, "active", false);
     private final BooleanProperty closed = new SimpleBooleanProperty(this, "closed", false);
@@ -87,25 +64,40 @@ public class InternalWindow extends BorderPane {
     private final BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
     private final BooleanProperty resizable = new SimpleBooleanProperty(this, "resizable", true);
 
-    private static final PseudoClass ACTIVE_CLASS = PseudoClass.getPseudoClass("active");
-
+    private double mousex = 0;
+    private double mousey = 0;
+    private double x = 0;
+    private double y = 0;
+    private TitleBar titleBar;
+    private Pane contentPane;
+    private Node content;
+    private InternalWindow.ResizeMode resizeMode;
+    private boolean resize;
+    private boolean resizeTop;
+    private boolean resizeBottom;
+    private boolean resizeRight;
+    private boolean resizeLeft;
+    private double previousWidth = -1;
+    private double previousHeight = -1;
+    private double previousY = -1;
+    private double previousX = -1;
+    private double previousDetachedWidth = -1;
+    private double previousDetachedHeight = -1;
+    private double previousDetachedX = -1;
+    private double previousDetachedY = -1;
+    private Stage detachedWindow;
+    private DesktopPane desktopPane;
+    private boolean wasMaximized = false;
     private BooleanBinding showingBinding;
     private Point2D pointPressed;
-
-    private boolean sizeWest = false, sizeEast = false, sizeNorth = false, sizeSouth = false;
-
-    private boolean isMouseResizeZone() {
-        return sizeWest || sizeEast || sizeNorth || sizeSouth;
-    }
-
-    private EventHandler<MouseEvent> windowMousePressed = new EventHandler<MouseEvent>() {
+    private final EventHandler<MouseEvent> windowMousePressed = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
             pointPressed = new Point2D(event.getScreenX(), event.getScreenY());
         }
     };
-
-    private EventHandler<MouseEvent> windowMouseMoved = new EventHandler<MouseEvent>() {
+    private boolean sizeWest = false, sizeEast = false, sizeNorth = false, sizeSouth = false;
+    private final EventHandler<MouseEvent> windowMouseMoved = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
             Cursor cursor = Cursor.DEFAULT;
@@ -148,19 +140,7 @@ public class InternalWindow extends BorderPane {
             detachedWindow.getScene().setCursor(cursor);
         }
     };
-
-    private static boolean isContainedInHierarchy(Node container, Node node) {
-        Node candidate = node;
-        do {
-            if (candidate == container) {
-                return true;
-            }
-            candidate = candidate.getParent();
-        } while (candidate != null);
-        return false;
-    }
-
-    private EventHandler<MouseEvent> windowMouseDragged = new EventHandler<MouseEvent>() {
+    private final EventHandler<MouseEvent> windowMouseDragged = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
             Point2D pointDragged = new Point2D(event.getScreenX(), event.getScreenY());
@@ -220,6 +200,25 @@ public class InternalWindow extends BorderPane {
         }
     };
 
+    private DesktopPane dp;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onShowing;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onShown;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onHiding;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onHidden;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onCloseRequest;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizing;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMinimized;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizing;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onMaximized;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onRestoring;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onRestored;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onAttaching;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onAttached;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onDetaching;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onDetached;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onActivated;
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onDeactivated;
+
     public InternalWindow(String mdiWindowID, Node icon, String title, Node content) {
         init(mdiWindowID, icon, title, content);
     }
@@ -236,6 +235,10 @@ public class InternalWindow extends BorderPane {
             center();
             maximizeOrRestoreWindow();
         }
+    }
+
+    private boolean isMouseResizeZone() {
+        return sizeWest || sizeEast || sizeNorth || sizeSouth;
     }
 
     public void updateStyle(PseudoClass pseudo, boolean newValue) {
@@ -270,10 +273,6 @@ public class InternalWindow extends BorderPane {
         return active.get();
     }
 
-    public ReadOnlyBooleanProperty activeProperty() {
-        return active;
-    }
-
     protected void setActive(boolean active) {
         boolean previousActive = this.active.get();
         this.active.set(active);
@@ -285,6 +284,10 @@ public class InternalWindow extends BorderPane {
                 fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_DEACTIVATED));
             }
         }
+    }
+
+    public ReadOnlyBooleanProperty activeProperty() {
+        return active;
     }
 
     private void init(String windowId, Node icon, String title, Node content) {
@@ -331,7 +334,9 @@ public class InternalWindow extends BorderPane {
     }
 
     public void minimizeWindow() {
-        if (isMinimized()) { return; }
+        if (isMinimized()) {
+            return;
+        }
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MINIMIZING));
 
         wasMaximized = isMaximized();
@@ -354,10 +359,10 @@ public class InternalWindow extends BorderPane {
     }
 
     private void captureDetachedWindowBounds() {
-        previousX = detachedWindow.getX();
-        previousY = detachedWindow.getY();
-        previousHeight = detachedWindow.getHeight();
-        previousWidth = detachedWindow.getWidth();
+        previousDetachedX = detachedWindow.getX();
+        previousDetachedY = detachedWindow.getY();
+        previousDetachedHeight = detachedWindow.getHeight();
+        previousDetachedWidth = detachedWindow.getWidth();
     }
 
     private void captureBounds() {
@@ -429,6 +434,7 @@ public class InternalWindow extends BorderPane {
     private void restoreInternalWindow() {
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORING));
         maximized.set(false);
+        setCapturedBounds();
         removeListenerToResizeMaximizedWindows();
         setVisible(true);
         setManaged(true);
@@ -442,11 +448,22 @@ public class InternalWindow extends BorderPane {
         setPrefSize(previousWidth, previousHeight);
     }
 
+    private void setCapturedDetachedBounds() {
+        detachedWindow.setWidth(previousDetachedWidth > 0 ? previousDetachedWidth : previousWidth);
+        detachedWindow.setHeight(previousDetachedHeight > 0 ? previousDetachedHeight : previousHeight);
+
+        if (previousDetachedWidth <= 0 && previousDetachedHeight <= 0) {
+            detachedWindow.centerOnScreen();
+        } else {
+            detachedWindow.setX(previousDetachedX);
+            detachedWindow.setY(previousDetachedY);
+        }
+    }
+
     private void maximizeWindow(boolean recordSizes) {
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZING));
         if (recordSizes) {
             captureDetachedWindowBounds();
-            // previousWidth = getWidth();
         }
         maximizeDetachedWindow();
 
@@ -456,6 +473,7 @@ public class InternalWindow extends BorderPane {
     }
 
     private void maximizeDetachedWindow() {
+        detachedWindow.setMaximized(true);
         Screen screen = resolveScreen();
         detachedWindow.setX(0);
         detachedWindow.setY(titleBar.getHeight());
@@ -465,10 +483,8 @@ public class InternalWindow extends BorderPane {
 
     private void restoreWindow() {
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORING));
-        detachedWindow.setX(previousX);
-        detachedWindow.setY(previousY);
-        detachedWindow.setWidth(previousWidth);
-        detachedWindow.setHeight(previousHeight);
+        detachedWindow.setMaximized(false);
+        setCapturedDetachedBounds();
 
         maximized.set(false);
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_RESTORED));
@@ -709,8 +725,6 @@ public class InternalWindow extends BorderPane {
         return stylesheets;
     }
 
-    private DesktopPane dp;
-
     public void detachOrAttachWindow() {
         setDetached(!isDetached());
 
@@ -720,7 +734,9 @@ public class InternalWindow extends BorderPane {
             Point2D locationOnScreen = this.localToScreen(0, 0);
             detachedWindow.getScene().getStylesheets().setAll(collectStylesheets());
 
-            captureBounds();
+            if (!isMaximized()) {
+                captureBounds();
+            }
 
             dp = desktopPane.removeInternalWindow(this);
 
@@ -747,14 +763,15 @@ public class InternalWindow extends BorderPane {
             detachedWindow.setY(locationOnScreen.getY());
 
             fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_DETACHED));
-            detachedWindow.show();
 
             if (isMaximized()) {
                 maximizeDetachedWindow();
             } else {
-                bp.setMaxWidth(getMaxWidth());
-                bp.setMaxHeight(getMaxHeight());
+                //bp.setMaxWidth(getMaxWidth());
+                //bp.setMaxHeight(getMaxHeight());
+                setCapturedDetachedBounds();
             }
+            detachedWindow.show();
         } else {
             fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_ATTACHING));
             detachedWindow.hide();
@@ -765,22 +782,11 @@ public class InternalWindow extends BorderPane {
             setTop(titleBar);
             setCenter(contentPane);
 
-            captureDetachedWindowBounds();
-
-            setPrefSize(previousWidth, previousHeight);
-
-            Bounds boundsInScreen = dp.localToScreen(dp.getBoundsInLocal());
-            previousX = Math.max(previousX - boundsInScreen.getMinX(), 0);
-            previousY = Math.max(previousY - boundsInScreen.getMinY(), 0);
-
-            double maxX = boundsInScreen.getMaxX() - boundsInScreen.getMinX();
-            if (previousX + previousWidth > maxX) {
-                previousX = maxX - previousWidth;
-            }
-
-            double maxY = boundsInScreen.getMaxY() - boundsInScreen.getMinY();
-            if (previousY + previousHeight > maxY) {
-                previousY = maxY - previousHeight;
+            if (!isMaximized()) {
+                captureDetachedWindowBounds();
+                setCapturedBounds();
+            } else {
+                maximizeInternalWindow(false);
             }
 
             fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_ATTACHED));
@@ -790,7 +796,6 @@ public class InternalWindow extends BorderPane {
 
     private void removeListenerToResizeMaximizedWindows() {
         AnchorPane.clearConstraints(this);
-        setCapturedBounds();
     }
 
     private void addListenerToResizeMaximizedWindows() {
@@ -806,36 +811,17 @@ public class InternalWindow extends BorderPane {
             newWidth = detachedWindow.getWidth(),
             newHeight = detachedWindow.getHeight();
 
+        newWidth = newWidth > 0 ? newWidth : 200;
+        newHeight = newHeight > 0 ? newHeight : 200;
+
         return Screen.getScreensForRectangle(newX, newY, newWidth, newHeight).get(0);
-    }
-
-    enum ResizeMode {
-        NONE,
-        TOP,
-        LEFT,
-        BOTTOM,
-        RIGHT,
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT
-    }
-
-    public enum AlignPosition {
-        CENTER,
-        CENTER_LEFT,
-        CENTER_RIGHT,
-        TOP_CENTER,
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT,
-        BOTTOM_CENTER
     }
 
     public BooleanProperty closedProperty() {
         return closed;
     }
+
+    // -- Event handling
 
     public boolean isClosed() {
         return closed.getValue();
@@ -849,24 +835,24 @@ public class InternalWindow extends BorderPane {
         return detached.get();
     }
 
-    public BooleanProperty detachedProperty() {
-        return detached;
-    }
-
     public void setDetached(boolean detached) {
         this.detached.set(detached);
+    }
+
+    public BooleanProperty detachedProperty() {
+        return detached;
     }
 
     public boolean isResizable() {
         return resizable.get();
     }
 
-    public BooleanProperty resizableProperty() {
-        return resizable;
-    }
-
     public void setResizable(boolean resizable) {
         this.resizable.set(resizable);
+    }
+
+    public BooleanProperty resizableProperty() {
+        return resizable;
     }
 
     public boolean isMinimized() {
@@ -893,16 +879,12 @@ public class InternalWindow extends BorderPane {
         return showingBinding;
     }
 
-    // -- Event handling
-
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onShowing;
+    public final EventHandler<InternalWindowEvent> getOnShowing() {
+        return onShowing == null ? null : onShowing.get();
+    }
 
     public final void setOnShowing(EventHandler<InternalWindowEvent> value) {
         onShowingProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnShowing() {
-        return onShowing == null ? null : onShowing.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onShowingProperty() {
@@ -927,14 +909,12 @@ public class InternalWindow extends BorderPane {
         return onShowing;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onShown;
+    public final EventHandler<InternalWindowEvent> getOnShown() {
+        return onShown == null ? null : onShown.get();
+    }
 
     public final void setOnShown(EventHandler<InternalWindowEvent> value) {
         onShownProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnShown() {
-        return onShown == null ? null : onShown.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onShownProperty() {
@@ -959,14 +939,12 @@ public class InternalWindow extends BorderPane {
         return onShown;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onHiding;
+    public final EventHandler<InternalWindowEvent> getOnHiding() {
+        return onHiding == null ? null : onHiding.get();
+    }
 
     public final void setOnHiding(EventHandler<InternalWindowEvent> value) {
         onHidingProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnHiding() {
-        return onHiding == null ? null : onHiding.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onHidingProperty() {
@@ -991,14 +969,12 @@ public class InternalWindow extends BorderPane {
         return onHiding;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onHidden;
+    public final EventHandler<InternalWindowEvent> getOnHidden() {
+        return onHidden == null ? null : onHidden.get();
+    }
 
     public final void setOnHidden(EventHandler<InternalWindowEvent> value) {
         onHiddenProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnHidden() {
-        return onHidden == null ? null : onHidden.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onHiddenProperty() {
@@ -1023,14 +999,12 @@ public class InternalWindow extends BorderPane {
         return onHidden;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onCloseRequest;
+    public final EventHandler<InternalWindowEvent> getOnCloseRequest() {
+        return (onCloseRequest != null) ? onCloseRequest.get() : null;
+    }
 
     public final void setOnCloseRequest(EventHandler<InternalWindowEvent> value) {
         onCloseRequestProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnCloseRequest() {
-        return (onCloseRequest != null) ? onCloseRequest.get() : null;
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>>
@@ -1056,14 +1030,12 @@ public class InternalWindow extends BorderPane {
         return onCloseRequest;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizing;
+    public final EventHandler<InternalWindowEvent> getOnMinimizing() {
+        return onMinimizing == null ? null : onMinimizing.get();
+    }
 
     public final void setOnMinimizing(EventHandler<InternalWindowEvent> value) {
         onMinimizingProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnMinimizing() {
-        return onMinimizing == null ? null : onMinimizing.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizingProperty() {
@@ -1088,14 +1060,12 @@ public class InternalWindow extends BorderPane {
         return onMinimizing;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onMinimized;
+    public final EventHandler<InternalWindowEvent> getOnMinimized() {
+        return onMinimized == null ? null : onMinimized.get();
+    }
 
     public final void setOnMinimized(EventHandler<InternalWindowEvent> value) {
         onMinimizedProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnMinimized() {
-        return onMinimized == null ? null : onMinimized.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onMinimizedProperty() {
@@ -1120,14 +1090,12 @@ public class InternalWindow extends BorderPane {
         return onMinimized;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizing;
+    public final EventHandler<InternalWindowEvent> getOnMaximizing() {
+        return onMaximizing == null ? null : onMaximizing.get();
+    }
 
     public final void setOnMaximizing(EventHandler<InternalWindowEvent> value) {
         onMaximizingProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnMaximizing() {
-        return onMaximizing == null ? null : onMaximizing.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizingProperty() {
@@ -1152,14 +1120,12 @@ public class InternalWindow extends BorderPane {
         return onMaximizing;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onMaximized;
+    public final EventHandler<InternalWindowEvent> getOnMaximized() {
+        return onMaximized == null ? null : onMaximized.get();
+    }
 
     public final void setOnMaximized(EventHandler<InternalWindowEvent> value) {
         onMaximizedProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnMaximized() {
-        return onMaximized == null ? null : onMaximized.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onMaximizedProperty() {
@@ -1184,14 +1150,12 @@ public class InternalWindow extends BorderPane {
         return onMaximized;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onRestoring;
+    public final EventHandler<InternalWindowEvent> getOnRestoring() {
+        return onRestoring == null ? null : onRestoring.get();
+    }
 
     public final void setOnRestoring(EventHandler<InternalWindowEvent> value) {
         onRestoringProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnRestoring() {
-        return onRestoring == null ? null : onRestoring.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onRestoringProperty() {
@@ -1216,14 +1180,12 @@ public class InternalWindow extends BorderPane {
         return onRestoring;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onRestored;
+    public final EventHandler<InternalWindowEvent> getOnRestored() {
+        return onRestored == null ? null : onRestored.get();
+    }
 
     public final void setOnRestored(EventHandler<InternalWindowEvent> value) {
         onRestoredProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnRestored() {
-        return onRestored == null ? null : onRestored.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onRestoredProperty() {
@@ -1248,14 +1210,12 @@ public class InternalWindow extends BorderPane {
         return onRestored;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onAttaching;
+    public final EventHandler<InternalWindowEvent> getOnAttaching() {
+        return onAttaching == null ? null : onAttaching.get();
+    }
 
     public final void setOnAttaching(EventHandler<InternalWindowEvent> value) {
         onAttachingProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnAttaching() {
-        return onAttaching == null ? null : onAttaching.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onAttachingProperty() {
@@ -1280,14 +1240,12 @@ public class InternalWindow extends BorderPane {
         return onAttaching;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onAttached;
+    public final EventHandler<InternalWindowEvent> getOnAttached() {
+        return onAttached == null ? null : onAttached.get();
+    }
 
     public final void setOnAttached(EventHandler<InternalWindowEvent> value) {
         onAttachedProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnAttached() {
-        return onAttached == null ? null : onAttached.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onAttachedProperty() {
@@ -1312,14 +1270,12 @@ public class InternalWindow extends BorderPane {
         return onAttached;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onDetaching;
+    public final EventHandler<InternalWindowEvent> getOnDetaching() {
+        return onDetaching == null ? null : onDetaching.get();
+    }
 
     public final void setOnDetaching(EventHandler<InternalWindowEvent> value) {
         onDetachingProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnDetaching() {
-        return onDetaching == null ? null : onDetaching.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onDetachingProperty() {
@@ -1344,14 +1300,12 @@ public class InternalWindow extends BorderPane {
         return onDetaching;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onDetached;
+    public final EventHandler<InternalWindowEvent> getOnDetached() {
+        return onDetached == null ? null : onDetached.get();
+    }
 
     public final void setOnDetached(EventHandler<InternalWindowEvent> value) {
         onDetachedProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnDetached() {
-        return onDetached == null ? null : onDetached.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onDetachedProperty() {
@@ -1376,14 +1330,12 @@ public class InternalWindow extends BorderPane {
         return onDetached;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onActivated;
+    public final EventHandler<InternalWindowEvent> getOnActivated() {
+        return onActivated == null ? null : onActivated.get();
+    }
 
     public final void setOnActivated(EventHandler<InternalWindowEvent> value) {
         onActivatedProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnActivated() {
-        return onActivated == null ? null : onActivated.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onActivatedProperty() {
@@ -1408,14 +1360,12 @@ public class InternalWindow extends BorderPane {
         return onActivated;
     }
 
-    private ObjectProperty<EventHandler<InternalWindowEvent>> onDeactivated;
+    public final EventHandler<InternalWindowEvent> getOnDeactivated() {
+        return onDeactivated == null ? null : onDeactivated.get();
+    }
 
     public final void setOnDeactivated(EventHandler<InternalWindowEvent> value) {
         onDeactivatedProperty().set(value);
-    }
-
-    public final EventHandler<InternalWindowEvent> getOnDeactivated() {
-        return onDeactivated == null ? null : onDeactivated.get();
     }
 
     public final ObjectProperty<EventHandler<InternalWindowEvent>> onDeactivatedProperty() {
@@ -1438,5 +1388,40 @@ public class InternalWindow extends BorderPane {
             };
         }
         return onDeactivated;
+    }
+
+    private static boolean isContainedInHierarchy(Node container, Node node) {
+        Node candidate = node;
+        do {
+            if (candidate == container) {
+                return true;
+            }
+            candidate = candidate.getParent();
+        } while (candidate != null);
+        return false;
+    }
+
+    enum ResizeMode {
+        NONE,
+        TOP,
+        LEFT,
+        BOTTOM,
+        RIGHT,
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT
+    }
+
+    public enum AlignPosition {
+        CENTER,
+        CENTER_LEFT,
+        CENTER_RIGHT,
+        TOP_CENTER,
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT,
+        BOTTOM_CENTER
     }
 }
