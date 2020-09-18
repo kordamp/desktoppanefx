@@ -100,6 +100,7 @@ public class InternalWindow extends BorderPane {
     private final EventHandler<MouseEvent> windowMouseMoved = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
+            if (!isResizable()) return;
             Cursor cursor = Cursor.DEFAULT;
 
             BorderPane borderPane = (BorderPane) contentPane.getParent();
@@ -178,13 +179,13 @@ public class InternalWindow extends BorderPane {
 
                 if (getMinWidth() <= newWidth && newWidth <= maxWidth) {
                     detachedWindow.setX(newX);
-                    detachedWindow.setWidth(newWidth);
+                    if (isResizable()) detachedWindow.setWidth(newWidth);
                     currentX = pointDragged.getX();
                 }
 
                 if (getMinHeight() <= newHeight && newHeight <= maxHeight) {
                     detachedWindow.setY(newY);
-                    detachedWindow.setHeight(newHeight);
+                    if (isResizable()) detachedWindow.setHeight(newHeight);
                     currentY = pointDragged.getY();
                 }
 
@@ -314,6 +315,8 @@ public class InternalWindow extends BorderPane {
         detachedWindow.setScene(new Scene(new BorderPane()));
         detachedWindow.initStyle(StageStyle.TRANSPARENT);
         detachedWindow.getScene().setFill(null);
+        resizableProperty().addListener((v, o, n) -> detachedWindow.setResizable(n));
+        detachedWindow.setResizable(isResizable());
         return detachedWindow;
     }
 
@@ -418,6 +421,7 @@ public class InternalWindow extends BorderPane {
     }
 
     private void maximizeInternalWindow(boolean recordSizes) {
+        if (!isResizable()) return;
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZING));
         if (recordSizes) {
             captureBounds();
@@ -461,6 +465,7 @@ public class InternalWindow extends BorderPane {
     }
 
     private void maximizeWindow(boolean recordSizes) {
+        if (!isResizable()) return;
         fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_MAXIMIZING));
         if (recordSizes) {
             captureDetachedWindowBounds();

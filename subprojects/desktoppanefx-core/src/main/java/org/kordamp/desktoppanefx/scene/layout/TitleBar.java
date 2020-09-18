@@ -42,30 +42,25 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
  * @author Andres Almiray
  */
 public class TitleBar extends AnchorPane {
-    private final InternalWindow internalWindow;
-    private final ContextMenu contextMenu;
-    private Pane titlePane;
-
-    private Node icon;
-    private Label lblTitle;
-    private final Button btnClose;
-    private final Button btnMinimize;
-    private final Button btnMaximize;
-    private final Button btnDetach;
-
-    private boolean disableResize = false;
-
     private final BooleanProperty minimizeVisible = new SimpleBooleanProperty(this, "minimizeVisible", true);
     private final BooleanProperty maximizeVisible = new SimpleBooleanProperty(this, "maximizeVisible", true);
     private final BooleanProperty closeVisible = new SimpleBooleanProperty(this, "closeVisible", true);
     private final BooleanProperty detachVisible = new SimpleBooleanProperty(this, "detachVisible", true);
-
     private final BooleanProperty disableMinimize = new SimpleBooleanProperty(this, "disableMinimize", false);
     private final BooleanProperty disableMaximize = new SimpleBooleanProperty(this, "disableMaximize", false);
     private final BooleanProperty disableClose = new SimpleBooleanProperty(this, "disableClose", false);
     private final BooleanProperty disableDetach = new SimpleBooleanProperty(this, "disableDetach", false);
-
     private final StringProperty title = new SimpleStringProperty(this, "title", "");
+
+    private final InternalWindow internalWindow;
+    private final ContextMenu contextMenu;
+    private final Button btnClose;
+    private final Button btnMinimize;
+    private final Button btnMaximize;
+    private final Button btnDetach;
+    private Pane titlePane;
+    private Node icon;
+    private Label lblTitle;
 
     public TitleBar(InternalWindow internalWindow, Node icon, String title) {
         this.internalWindow = internalWindow;
@@ -86,25 +81,23 @@ public class TitleBar extends AnchorPane {
 
         boolean detachableWindows = Boolean.getBoolean(IncubatingFeatures.DETACHABLE_WINDOWS);
 
-        if (!disableResize) {
-            if (detachableWindows) {
-                getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));
-            } else {
-                getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
-            }
-            //double click on title bar
-            setOnMouseClicked((MouseEvent event) -> {
+        //double click on title bar
+        setOnMouseClicked((MouseEvent event) -> {
+            if (internalWindow.isResizable()) {
                 if (event.getClickCount() == 2) {
                     internalWindow.maximizeOrRestoreWindow();
                 }
-            });
-        } else {
-            if (detachableWindows) {
-                getChildren().add(makeControls(btnDetach, btnMinimize, btnClose));
-            } else {
-                getChildren().add(makeControls(btnMinimize, btnClose));
             }
+        });
+
+        if (detachableWindows) {
+            getChildren().add(makeControls(btnDetach, btnMinimize, btnMaximize, btnClose));
+        } else {
+            getChildren().add(makeControls(btnMinimize, btnMaximize, btnClose));
         }
+
+        btnMaximize.visibleProperty().bind(internalWindow.resizableProperty());
+        btnMaximize.managedProperty().bind(internalWindow.resizableProperty());
 
         internalWindow.maximizedProperty().addListener((v, o, n) -> ((FontIcon) btnMaximize.getGraphic()).setIconCode(n ?
             MaterialDesign.MDI_WINDOW_RESTORE :
@@ -164,7 +157,7 @@ public class TitleBar extends AnchorPane {
             createCloseMenu(internalWindow));
 
         addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
-            if (!internalWindow.isDetached()&& event.isSecondaryButtonDown()) {
+            if (!internalWindow.isDetached() && event.isSecondaryButtonDown()) {
                 contextMenu.show(this, event.getScreenX(), event.getScreenY());
             }
         });
@@ -216,7 +209,9 @@ public class TitleBar extends AnchorPane {
         setTitle(title);
         lblTitle.getStyleClass().add("internal-window-titlebar-title");
 
-        if (icon != null) { hbLeft.getChildren().add(icon); }
+        if (icon != null) {
+            hbLeft.getChildren().add(icon);
+        }
         hbLeft.getChildren().add(lblTitle);
         hbLeft.setAlignment(Pos.CENTER_LEFT);
         AnchorPane.setLeftAnchor(hbLeft, 10d);
@@ -257,107 +252,107 @@ public class TitleBar extends AnchorPane {
         return title.get();
     }
 
-    public StringProperty titleProperty() {
-        return title;
-    }
-
     public void setTitle(String title) {
         this.title.set(title);
+    }
+
+    public StringProperty titleProperty() {
+        return title;
     }
 
     public boolean isMinimizeVisible() {
         return minimizeVisible.get();
     }
 
-    public BooleanProperty minimizeVisibleProperty() {
-        return minimizeVisible;
-    }
-
     public void setMinimizeVisible(boolean minimizeVisible) {
         this.minimizeVisible.set(minimizeVisible);
+    }
+
+    public BooleanProperty minimizeVisibleProperty() {
+        return minimizeVisible;
     }
 
     public boolean isMaximizeVisible() {
         return maximizeVisible.get();
     }
 
-    public BooleanProperty maximizeVisibleProperty() {
-        return maximizeVisible;
-    }
-
     public void setMaximizeVisible(boolean maximizeVisible) {
         this.maximizeVisible.set(maximizeVisible);
+    }
+
+    public BooleanProperty maximizeVisibleProperty() {
+        return maximizeVisible;
     }
 
     public boolean isCloseVisible() {
         return closeVisible.get();
     }
 
-    public BooleanProperty closeVisibleProperty() {
-        return closeVisible;
-    }
-
     public void setCloseVisible(boolean closeVisible) {
         this.closeVisible.set(closeVisible);
+    }
+
+    public BooleanProperty closeVisibleProperty() {
+        return closeVisible;
     }
 
     public boolean isDetachVisible() {
         return detachVisible.get();
     }
 
-    public BooleanProperty detachVisibleProperty() {
-        return detachVisible;
-    }
-
     public void setDetachVisible(boolean detachVisible) {
         this.detachVisible.set(detachVisible);
+    }
+
+    public BooleanProperty detachVisibleProperty() {
+        return detachVisible;
     }
 
     public boolean isDisableMinimize() {
         return disableMinimize.get();
     }
 
-    public BooleanProperty disableMinimizeProperty() {
-        return disableMinimize;
-    }
-
     public void setDisableMinimize(boolean disableMinimize) {
         this.disableMinimize.set(disableMinimize);
+    }
+
+    public BooleanProperty disableMinimizeProperty() {
+        return disableMinimize;
     }
 
     public boolean isDisableMaximize() {
         return disableMaximize.get();
     }
 
-    public BooleanProperty disableMaximizeProperty() {
-        return disableMaximize;
-    }
-
     public void setDisableMaximize(boolean disableMaximize) {
         this.disableMaximize.set(disableMaximize);
+    }
+
+    public BooleanProperty disableMaximizeProperty() {
+        return disableMaximize;
     }
 
     public boolean isDisableClose() {
         return disableClose.get();
     }
 
-    public BooleanProperty disableCloseProperty() {
-        return disableClose;
-    }
-
     public void setDisableClose(boolean disableClose) {
         this.disableClose.set(disableClose);
+    }
+
+    public BooleanProperty disableCloseProperty() {
+        return disableClose;
     }
 
     public boolean isDisableDetach() {
         return disableDetach.get();
     }
 
-    public BooleanProperty disableDetachProperty() {
-        return disableDetach;
-    }
-
     public void setDisableDetach(boolean disableDetach) {
         this.disableDetach.set(disableDetach);
+    }
+
+    public BooleanProperty disableDetachProperty() {
+        return disableDetach;
     }
 }
