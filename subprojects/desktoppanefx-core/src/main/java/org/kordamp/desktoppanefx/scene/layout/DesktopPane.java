@@ -121,7 +121,7 @@ public class DesktopPane extends BorderPane {
         }
 
         InternalWindow previousWindow = activeWindow.getValue();
-        if (previousWindow != null) {
+        if (previousWindow != null && previousWindow != nextWindow) {
             previousWindow.setActive(false);
         }
 

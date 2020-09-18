@@ -41,6 +41,8 @@ public class InternalWindowEvent extends Event {
     public static final EventType<InternalWindowEvent> WINDOW_DETACHED = new EventType<>(ANY, "WINDOW_DETACHED");
     public static final EventType<InternalWindowEvent> WINDOW_ATTACHING = new EventType<>(ANY, "WINDOW_ATTACHING");
     public static final EventType<InternalWindowEvent> WINDOW_ATTACHED = new EventType<>(ANY, "WINDOW_ATTACHED");
+    public static final EventType<InternalWindowEvent> WINDOW_ACTIVATED = new EventType<>(ANY, "WINDOW_ACTIVATED");
+    public static final EventType<InternalWindowEvent> WINDOW_DEACTIVATED = new EventType<>(ANY, "WINDOW_DEACTIVATED");
 
     private final InternalWindow internalWindow;
 

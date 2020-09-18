@@ -80,7 +80,7 @@ public class InternalWindow extends BorderPane {
     private DesktopPane desktopPane;
     private boolean wasMaximized = false;
 
-    private final BooleanProperty active = new SimpleBooleanProperty(this, "active", true);
+    private final BooleanProperty active = new SimpleBooleanProperty(this, "active", false);
     private final BooleanProperty closed = new SimpleBooleanProperty(this, "closed", false);
     private final BooleanProperty minimized = new SimpleBooleanProperty(this, "minimized", false);
     private final BooleanProperty maximized = new SimpleBooleanProperty(this, "maximized", false);
@@ -275,7 +275,16 @@ public class InternalWindow extends BorderPane {
     }
 
     protected void setActive(boolean active) {
+        boolean previousActive = this.active.get();
         this.active.set(active);
+
+        if (previousActive != active) {
+            if (active) {
+                fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_ACTIVATED));
+            } else {
+                fireEvent(new InternalWindowEvent(this, InternalWindowEvent.WINDOW_DEACTIVATED));
+            }
+        }
     }
 
     private void init(String windowId, Node icon, String title, Node content) {
@@ -1365,5 +1374,69 @@ public class InternalWindow extends BorderPane {
             };
         }
         return onDetached;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onActivated;
+
+    public final void setOnActivated(EventHandler<InternalWindowEvent> value) {
+        onActivatedProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnActivated() {
+        return onActivated == null ? null : onActivated.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onActivatedProperty() {
+        if (onActivated == null) {
+            onActivated = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_ACTIVATED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onActivated";
+                }
+            };
+        }
+        return onActivated;
+    }
+
+    private ObjectProperty<EventHandler<InternalWindowEvent>> onDeactivated;
+
+    public final void setOnDeactivated(EventHandler<InternalWindowEvent> value) {
+        onDeactivatedProperty().set(value);
+    }
+
+    public final EventHandler<InternalWindowEvent> getOnDeactivated() {
+        return onDeactivated == null ? null : onDeactivated.get();
+    }
+
+    public final ObjectProperty<EventHandler<InternalWindowEvent>> onDeactivatedProperty() {
+        if (onDeactivated == null) {
+            onDeactivated = new ObjectPropertyBase<EventHandler<InternalWindowEvent>>() {
+                @Override
+                protected void invalidated() {
+                    setEventHandler(InternalWindowEvent.WINDOW_DEACTIVATED, get());
+                }
+
+                @Override
+                public Object getBean() {
+                    return InternalWindow.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "onDeactivated";
+                }
+            };
+        }
+        return onDeactivated;
     }
 }
