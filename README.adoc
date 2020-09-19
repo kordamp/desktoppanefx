@@ -4,7 +4,7 @@
 :project-repo:    maven
 :project-name:    desktoppanefx
 :project-group:   org.kordamp.desktoppanefx
-:project-version: 0.13.0
+:project-version: 0.14.0
 
 image:http://img.shields.io/travis/{project-owner}/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/{project-owner}/{project-name}"]
 image:https://github.com/{project-owner}/{project-name}/workflows/Build/badge.svg["Build Status", link="https://github.com/{project-owner}/{project-name}/actions"]
@@ -49,19 +49,11 @@ dependencies {
         <version>{project-version}</version>
     </dependency>
 </dependencies>
-
-<repositories>
-    <repository>
-        <id>central</id>
-        <name>jcenter</name>
-        <url>http://jcenter.bintray.com</url>
-    </repository>
-</repositories>
 ----
 
 === Java 9+
 
-DesktopPaneFX can be used in a modular fashion when running in Java9+. It's module name is `org.kordamp.desktoppanefx.core`.
+DesktopPaneFX can be used in a modular fashion when running in Java9+. Its module name is `org.kordamp.desktoppanefx.core`.
 
 == Example
 
