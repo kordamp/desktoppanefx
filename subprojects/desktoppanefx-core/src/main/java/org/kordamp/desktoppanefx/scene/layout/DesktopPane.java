@@ -86,7 +86,7 @@ public class DesktopPane extends BorderPane {
 
     public DesktopPane() {
         super();
-        getStylesheets().add("/org/kordamp/desktoppanefx/scene/layout/default-desktoppane-stylesheet.css");
+        getStylesheets().add(DesktopPane.class.getResource("default-desktoppane-stylesheet.css").toExternalForm());
 
         internalWindowContainer = new AnchorPane();
         internalWindowContainer.getStyleClass().add("desktoppane");

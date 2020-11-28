@@ -4,7 +4,7 @@
 :project-repo:    maven
 :project-name:    desktoppanefx
 :project-group:   org.kordamp.desktoppanefx
-:project-version: 0.14.0
+:project-version: 0.15.0
 
 image:http://img.shields.io/travis/{project-owner}/{project-name}/master.svg["Build Status (travis)", link="https://travis-ci.org/{project-owner}/{project-name}"]
 image:https://github.com/{project-owner}/{project-name}/workflows/Build/badge.svg["Build Status", link="https://github.com/{project-owner}/{project-name}/actions"]
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    compile '{project-group}:desktoppanefx-core:{project-version}'
+    implementation '{project-group}:desktoppanefx-core:{project-version}'
 }
 ----
 
@@ -51,14 +51,12 @@ dependencies {
 </dependencies>
 ----
 
-=== Java 9+
+== org.kordamp.desktoppanefx.sampler.Example
 
-DesktopPaneFX can be used in a modular fashion when running in Java9+. Its module name is `org.kordamp.desktoppanefx.core`.
-
-== Example
-
-[source]
+[source,java]
 ----
+package com.acme;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -110,8 +108,8 @@ The following features can be activated by defining a System property with a `"t
 
 You must meet the following requirements:
 
- * JDK8u172 as a minimum footnote:[Using the incubating feature for attaching and detaching windows leads to a styling issue for JDK8u102 to JDK8u171 (see https://bugs.openjdk.java.net/browse/JDK-8183100)]
- * Gradle 6
+ * JDK11 as a minimum
+ * Gradle 6.3
 
 You may used the included gradle wrapper script if you don't have `gradle` installed.
 
@@ -129,7 +127,7 @@ You may used the included gradle wrapper script if you don't have `gradle` insta
 
  . Follow the instructions found at http://sdkman.io/ to install SDKMAN.
  . You need a POSIX environment if running Windows. We recommend using Babun Shell (http://babun.github.io/)
- . Once SDKMAN is installed invoke `sdk install gradle 6.0`.
+ . Once SDKMAN is installed invoke `sdk install gradle 6.3`.
  . Test your setup by invoking `gradle --version`.
 
 .Gum
@@ -147,7 +145,7 @@ Run the sampler JavaFX application by invoking the following command
 
 [source]
 ----
-$ ./gradlew :sampler:run
+$ gm :sampler:run
 ----
 
 === Contributing

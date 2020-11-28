@@ -15,17 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 plugins {
+    id 'java-library'
+    id 'org.jonnyzzz.java9c'
+    id 'org.javamodularity.moduleplugin'
     id 'application'
 }
 
-mainClassName = 'org.kordamp.desktoppanefx.Sampler'
+mainClassName = 'org.kordamp.desktoppanefx.sample/org.kordamp.desktoppanefx.sampler.Example'
 
 dependencies {
-    compile project(':desktoppanefx-core')
+    implementation project(':desktoppanefx-core')
+
+    implementation "org.openjfx:javafx-base:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
+    implementation "org.openjfx:javafx-fxml:${javafxVersion}:${platform}"
 }
 
 config {
+    artifacts {
+        source     { enabled = false }
+    }
     publishing { enabled = false }
     bintray    { enabled = false }
 }

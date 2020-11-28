@@ -15,23 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 plugins {
     id 'java-library'
+    id 'org.jonnyzzz.java9c'
+    id 'org.javamodularity.moduleplugin'
 }
 
 dependencies {
-    compile "org.kordamp.ikonli:ikonli-javafx:$ikonliVersion"
-    compile "org.kordamp.ikonli:ikonli-materialdesign-pack:$ikonliVersion"
+    api "org.kordamp.ikonli:ikonli-javafx:$ikonliVersion"
+    api "org.kordamp.ikonli:ikonli-materialdesign-pack:$ikonliVersion"
+
+    compileOnly "org.openjfx:javafx-base:${javafxVersion}:${platform}"
+    compileOnly "org.openjfx:javafx-graphics:${javafxVersion}:${platform}"
+    compileOnly "org.openjfx:javafx-controls:${javafxVersion}:${platform}"
 }
 
 config {
     bintray { enabled = true }
-}
-
-jar {
-    manifest {
-        attributes(
-            'Automatic-Module-Name': 'org.kordamp.' + project.name.replaceAll('-', '.')
-        )
-    }
 }

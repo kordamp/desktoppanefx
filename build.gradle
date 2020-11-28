@@ -16,6 +16,12 @@
  * limitations under the License.
  */
 
+plugins {
+    id 'com.google.osdetector'
+}
+
+ext.platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
+
 config {
     info {
         name          = 'DesktopPaneFX'
@@ -40,9 +46,14 @@ config {
         }
 
         javadoc {
+            autoLinks {
+                enabled = false
+            }
             options {
                 addBooleanOption('javafx', true)
-                links('http://docs.oracle.com/javase/8/javafx/api/')
+            }
+            aggregate {
+                enabled = false
             }
         }
     }
@@ -50,6 +61,10 @@ config {
 
 allprojects {
     apply plugin: 'idea'
+
+    repositories {
+        mavenLocal()
+    }
 }
 
 idea {
@@ -66,7 +81,7 @@ idea {
     }
 }
 
-subprojects { subproj ->
+subprojects {
     license {
         mapping {
             fxml = 'XML_STYLE'

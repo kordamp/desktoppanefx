@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kordamp.desktoppanefx;
+package org.kordamp.desktoppanefx.sampler;
 
 import javafx.application.Application;
 import javafx.application.HostServices;
@@ -59,7 +59,7 @@ public class Sampler extends Application {
         newWindowButton.setOnAction(event -> {
             Node content = null;
             try {
-                content = FXMLLoader.load(getClass().getResource("/MyContent.fxml"));
+                content = FXMLLoader.load(getClass().getResource("/org/kordamp/desktoppanefx/sampler/MyContent.fxml"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

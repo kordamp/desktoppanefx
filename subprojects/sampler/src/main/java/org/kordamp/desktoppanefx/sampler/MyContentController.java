@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.kordamp.desktoppanefx;
+package org.kordamp.desktoppanefx.sampler;
 
 import javafx.animation.RotateTransition;
 import javafx.fxml.FXML;

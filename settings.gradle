@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 pluginManagement {
     repositories {
         jcenter()
@@ -22,8 +23,11 @@ pluginManagement {
         mavenLocal()
     }
     plugins {
-	    id 'org.kordamp.gradle.guide'   version kordampPluginVersion
-	    id 'org.ajoberstar.git-publish' version gitPluginVersion
+        id 'org.javamodularity.moduleplugin' version modularityPluginVersion
+	    id 'org.ajoberstar.git-publish'      version gitPluginVersion
+	    id 'org.kordamp.gradle.guide'        version kordampPluginVersion
+        id 'com.google.osdetector'           version osPluginVersion
+        id 'org.jonnyzzz.java9c'             version java9cPluginVersion
     }
 }
 
