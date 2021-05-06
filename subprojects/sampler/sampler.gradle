@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright 2015-2020 The original authors
+ * Copyright 2015-2021 The original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 plugins {
     id 'java-library'
     id 'org.jonnyzzz.java9c'
@@ -23,7 +22,7 @@ plugins {
     id 'application'
 }
 
-mainClassName = 'org.kordamp.desktoppanefx.sample/org.kordamp.desktoppanefx.sampler.Example'
+mainClassName = 'org.kordamp.desktoppanefx.sampler/org.kordamp.desktoppanefx.sampler.Sampler'
 
 dependencies {
     implementation project(':desktoppanefx-core')
@@ -36,8 +35,7 @@ dependencies {
 
 config {
     artifacts {
-        source     { enabled = false }
+        source { enabled = false }
     }
     publishing { enabled = false }
-    bintray    { enabled = false }
 }

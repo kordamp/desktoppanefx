@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
  *
- * Copyright 2015-2020 The original authors
+ * Copyright 2015-2021 The original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-open module org.kordamp.desktoppanefx.sample {
+open module org.kordamp.desktoppanefx.sampler {
     exports org.kordamp.desktoppanefx.sampler;
     requires org.kordamp.desktoppanefx.core;
 
